@@ -42,7 +42,7 @@ class Store():
         # !todo: beautify the output
         if verbose:
             print('== Store Initialized: ==')
-            print(self.config)
+            print(json.dumps(self.config, indent=2, sort_keys=False))
 
     """
     "  register the feature to store
@@ -63,7 +63,7 @@ class Store():
     """
         retrieve feature from store
     """
-    def checkout(self, feature_id, **kwargs):
+    def checkout(self, feature_id, params, **kwargs):
         # read in the feature object 
         feature = self.book_keeper.lookup(feature_id)
         if feature != None:
@@ -75,15 +75,16 @@ class Store():
             deserializer =  self.registered_deserializers[feature.deserializer]
             pipeline = deserializer(dumps, self.config, **kwargs)
 
-            return pipeline
+            return pipeline(params)
         else:
             return None
 
     """
         list all available features
     """
-    def list_features(self, **kwargs):
+    def catalog(self, **kwargs):
         feature_list =  self.book_keeper.all_features(**kwargs)
+        print('== Feature Catalog ==')
         for _,v in feature_list.items():
             print('%s \t %s'%(v.name, v.uid))
 
