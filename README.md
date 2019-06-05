@@ -19,7 +19,7 @@ pip install Nebula  #package is not published yet
 
 * Step 2, Edit the store_config.json based on the environment. The following is an example of the generated configuration file:
 
-```json
+```javascript
 {
     "store_name": "Kai's Feature Store",
     "meta_manager": "default",
