@@ -1,18 +1,18 @@
 """
-"  default management console, keep records of all features in store
+"  default flat file meta data manager, keep records of all features in store
 """
 import os
 import pickle as pl
-from src.core.feature import Feature
+from src.providers.meta_manager_base import Meta_Manager_Base
 from src.utility.file_functions import file_exist, read_binary_file, write_binary_file
 
 
-class Default_Book_Keeper():
+class Flat_File_Meta_Manager(Meta_Manager_Base):
 
     def __init__(self, config):
         self.config = config
-        self.path = "%s/%s"%(config['root_dir'], config['book_keeper']['params']['folder_name'])
-        self.filename = self.config['book_keeper']['params']['file_name']
+        self.path = "%s/%s"%(config['default']['root_dir'], config['default']['folder_name'])
+        self.filename = self.config['default']['file_name']
 
     def register(self, feature):
         # check if book catalog file exist and
@@ -37,29 +37,42 @@ class Default_Book_Keeper():
             catalog = pl.loads(bytes_obj)
             if uid in catalog:
                 return catalog[uid]
-            print("uid in catalog", uid in catalog)
         return None
 
-    def all_features(self, **kwargs):
+    def list_features(self, **kwargs):
         if not file_exist(self.path, self.filename):
-            catalog = {}
-            
+            catalog = {}  
         else:
             bytes_obj = read_binary_file(self.path, self.filename)
             catalog = pl.loads(bytes_obj)
 
         return catalog
 
+    def inspect_feature(self, uid, **kwargs):
+        if not file_exist(self.path, self.filename):
+            catalog = {}
+        else:
+            bytes_obj = read_binary_file(self.path, self.filename)
+            catalog = pl.loads(bytes_obj)
+
+        if uid in catalog:
+            return catalog[uid]
+        else:
+            return None
+
+    def remove_feature(self, uid, **kwargs):
+
+        # check if book catalog file exist and
+        # read in the catalog dictionary 
+        if not file_exist(self.path, self.filename):
+            catalog = {}        
+        else:
+            bytes_obj = read_binary_file(self.path, self.filename)
+            catalog = pl.loads(bytes_obj)
+            if uid in catalog: del catalog[uid]
+
+        # write back catalog bytes object
+        dumps = pl.dumps(catalog)
+        write_binary_file(self.path, self.filename, dumps)
 
 
-
-class Book_Keeper_Factory():
-
-    def __init__(self, config):
-        self.config = config
-
-    # book keeper factory
-    def get_book_keeper(self):
-        if self.config['book_keeper']['type'] == 'default':
-            bookkeeper = Default_Book_Keeper(self.config)
-            return bookkeeper

@@ -45,6 +45,21 @@ def try_write_file(path, filename, data, mode, auto_create=True, max_retry=10, r
                 continue
         return 1
 
+def try_delete_file(path, filename, max_retry=10, retry_interval=1):
+    exist = file_exist(path, filename)
+    if exist:
+        retry = 0
+        while retry < max_retry:
+            try:
+                os.remove("%s/%s"%(path,filename))
+                return 0
+            except:
+                retry += 1
+                time.sleep(retry_interval)
+                continue
+    return 1
+
+
 def read_text_file(path, filename, max_retry=10, retry_interval=1):
     content = try_read_file(path, filename, 'r', max_retry, retry_interval)
     if content == None:
@@ -67,3 +82,8 @@ def write_binary_file(path, filename, data, max_retry=10, retry_interval=1):
     status = try_write_file(path, filename, data, 'wb', max_retry, retry_interval)
     if status != 0:
         raise Exception('Write binary file: %s failed!' % (filename))
+
+def delete_file(path, filename, max_retry=10, retry_interval=1):
+    status = try_delete_file(path, filename, max_retry, retry_interval)
+    if status != 0:
+        raise Exception('Delete file: %s failed!' % (filename))

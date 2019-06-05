@@ -1,28 +1,20 @@
 {
     "store_name": "Kai's Feature Store",
-    "root_dir": "/Users/kai/repository/nebula/storage",
-    "book_keeper": {
-        "type":"default",
-        "params":{
+    "meta_manager": "default",
+    "meta_manager_providers": {
+        "default":{
+            "root_dir": "/Users/kai/repository/nebula/storage",
             "folder_name":"catalog",
             "file_name":"catalog.nbl"
         }
     },
-    "writers":{
+    "persistor_providers":{
         "default":{
+            "root_dir": "/Users/kai/repository/nebula/storage",
             "folder_name":"features"
         }
     },
-    "readers":{
-        "default":{
-            "folder_name":"features"
-        }
-    },
-    "serializers":{
-        "default":{
-        }
-    },
-    "deserializers":{
+    "serializer_providers":{
         "default":{
         }
     }
