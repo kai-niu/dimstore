@@ -1,2 +1,2 @@
-dill = 0.2.9
-pickleshare = 0.7.5
+dill >= 0.2.9
+pickleshare >= 0.7.5
