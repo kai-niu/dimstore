@@ -2,7 +2,7 @@
     base class of serializer
 """
 
-class Serializer_Base():
+class SerializerBase():
     def __init__(self):
         pass
     

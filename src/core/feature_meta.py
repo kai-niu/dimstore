@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 
-class Feature_Meta():
+class FeatureMeta():
 
     def __init__(self, name, params_list=None, \
                              params_description = None, \

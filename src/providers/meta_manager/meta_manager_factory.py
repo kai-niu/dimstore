@@ -2,9 +2,9 @@
     meta manager factory
 """
 
-from src.providers.flatfile_meta_manager import Flat_File_Meta_Manager
+from src.providers.meta_manager.flatfile_meta_manager import FlatFileMetaManager
 
-class Meta_Manager_Factory():
+class MetaManagerFactory():
 
     def __init__(self, config):
         self.config = config
@@ -12,7 +12,7 @@ class Meta_Manager_Factory():
     # meta manager factory
     def get_meta_manager(self):
         if self.config['meta_manager'] == 'default':
-            return Flat_File_Meta_Manager(self.config['meta_manager_providers'])
+            return FlatFileMetaManager(self.config['meta_manager_providers'])
 
     # return supported meta manager info
     def info(self):

@@ -1,9 +1,9 @@
 """
     persistor factory
 """
-from src.providers.flatfile_persistor import Flat_File_Persistor
+from src.providers.persistor.flatfile_persistor import FlatFilePersistor
 
-class Persistor_Factory():
+class PersistorFactory():
 
     def __init__(self, config):
         self.config = config
@@ -11,7 +11,7 @@ class Persistor_Factory():
     # fabricate persistor
     def get_persistor(self, type):
         if type == 'default':
-            return Flat_File_Persistor(self.config['persistor_providers'])
+            return FlatFilePersistor(self.config['persistor_providers'])
 
     # return supported persistor info
     def info(self):

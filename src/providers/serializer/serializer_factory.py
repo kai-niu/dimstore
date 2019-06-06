@@ -1,9 +1,9 @@
 """
     serializer factory
 """
-from src.providers.dill_serializer import Dill_Serializer
+from src.providers.serializer.dill_serializer import DillSerializer
 
-class Serializer_Factory():
+class SerializerFactory():
 
     def __init__(self, config):
         self.config = config
@@ -11,7 +11,7 @@ class Serializer_Factory():
     # book keeper factory
     def get_serializer(self, type):
         if type == 'default':
-            return Dill_Serializer(self.config['serializer_providers'])
+            return DillSerializer(self.config['serializer_providers'])
 
     # return supported serializer info
     def info(self):

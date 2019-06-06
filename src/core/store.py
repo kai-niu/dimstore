@@ -1,9 +1,10 @@
 import dill
 import json
 import copy
-from src.providers.persistor_factory import Persistor_Factory
-from src.providers.serializer_factory import Serializer_Factory
-from src.providers.meta_manager_factory import Meta_Manager_Factory
+from src.providers.persistor.persistor_factory import PersistorFactory
+from src.providers.serializer.serializer_factory import SerializerFactory
+from src.providers.cache.cache_layer_factory import CacheLayerFactory
+from src.providers.meta_manager.meta_manager_factory import MetaManagerFactory
 
 
 """
@@ -27,13 +28,16 @@ class Store():
             self.config = json.loads(config_file.read())
 
         # init serializer factory
-        self.serializer_factory = Serializer_Factory(self.config)
+        self.serializer_factory = SerializerFactory(self.config)
+
+        # init cache layer factory
+        self.cache_layer_factory = CacheLayerFactory(self.config)
 
         # init persistor factory
-        self.persistor_factory = Persistor_Factory(self.config)
+        self.persistor_factory = PersistorFactory(self.config)
 
         # init console
-        self.meta_manager_factory = Meta_Manager_Factory(self.config)
+        self.meta_manager_factory = MetaManagerFactory(self.config)
         self.meta_manager = self.meta_manager_factory.get_meta_manager() 
 
     """
@@ -107,12 +111,16 @@ class Store():
     """
         show store info
     """
-    def info(self):
+    def info(self, **kwargs):
         print("== %s Information ==" % (self.config['store_name']) )
         print("- Meta Data Manager: %s" % (self.config['meta_manager']))
         print("- Supported Meta Data managers: ", self.meta_manager_factory.info())
         print("- Supported Persistors: ", self.persistor_factory.info())
         print("- Supported Serializers: ", self.serializer_factory.info())
+        print("- Supported Cache Layers: ", self.cache_layer_factory.info())
+        # check # of features available store
+        feature_list =  self.meta_manager.list_features(**kwargs)
+        print("- Features Available: ", len(feature_list))
 
 
 

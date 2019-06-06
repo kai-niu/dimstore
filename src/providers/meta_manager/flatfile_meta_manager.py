@@ -3,11 +3,11 @@
 """
 import os
 import pickle as pl
-from src.providers.meta_manager_base import Meta_Manager_Base
+from src.providers.meta_manager.meta_manager_base import MetaManagerBase
 from src.utility.file_functions import file_exist, read_binary_file, write_binary_file
 
 
-class Flat_File_Meta_Manager(Meta_Manager_Base):
+class FlatFileMetaManager(MetaManagerBase):
 
     def __init__(self, config):
         self.config = config

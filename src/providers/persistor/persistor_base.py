@@ -2,7 +2,7 @@
     persistor base class
 """
 
-class Persistor_Base():
+class PersistorBase():
     def __init__(self):
         pass
     

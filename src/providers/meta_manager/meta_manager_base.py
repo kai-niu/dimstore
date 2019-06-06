@@ -3,7 +3,7 @@
 """
 
 
-class Meta_Manager_Base():
+class MetaManagerBase():
 
     def __init__(self, config):
         pass

@@ -3,9 +3,9 @@
 """
 
 import dill
-from src.providers.serializer_base import Serializer_Base
+from src.providers.serializer.serializer_base import SerializerBase
 
-class Dill_Serializer(Serializer_Base):
+class DillSerializer(SerializerBase):
     
     def __init__(self, config):
         self.config = config
