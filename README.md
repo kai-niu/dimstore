@@ -17,7 +17,7 @@ pip install Nebula  #package is not published yet
 ```python
  from nebula import ConfigBuilder
  config = ConfigBuilder()
- config.build('path_to_config_folder/store_config.json')
+ config.build('./', 'foo_config')
 ```
 
 * Step 2, Edit the store_config.json based on the environment. The following is an example of the generated configuration file:
@@ -51,8 +51,8 @@ pip install Nebula  #package is not published yet
 1. Create the feature store object
 
 ```python
- from src.core.store import Store
- from src.core.feature_meta import FeatureMeta
+ from nebula import Store
+ from nebula import FeatureMeta
  
  # create feature store
  store = Store('store_config.json')
@@ -63,10 +63,12 @@ pip install Nebula  #package is not published yet
 ```
  # output
  == Kai's Feature Store Information ==
- - Meta Data Manager: default
- - Supported Meta Data managers:  ['flat file meta manager (default)']
- - Supported Persistors:  ['flat file persistor (default)']
- - Supported Serializers:  ['dill Serializer (default)']
+- Meta Data Manager: default
+- Supported Meta Data managers:  ['flat file meta manager (default)']
+- Supported Persistors:  ['flat file persistor (default)']
+- Supported Serializers:  ['dill Serializer (default)']
+- Supported Cache Layers:  ['None']
+- Features Available:  2
 ```
 
 2. Register feature into the feature store
