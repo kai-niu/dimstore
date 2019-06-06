@@ -4,4 +4,7 @@ python:
   - "3.7"
 
 script:
-  - echo 'not test performed!'
+  - echo 'no test performed!'
+
+install:
+  - echo 'nothing installed!'
