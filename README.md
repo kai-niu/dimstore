@@ -4,7 +4,8 @@ The Nebula is a lightweight feature store designed to streamline DSE working pip
 [![Build Status](https://travis.ibm.com/Kai-Niu/nebula.svg?token=uqbL1pAUo2sCHeqp1yJV&branch=master)](https://travis.ibm.com/Kai-Niu/nebula)
 
 # Design
-The Nebula is built on top of pySpark. The core idea is to share the feature extraction logic instead of actual dataset. The provider pattern enables the Nebula to work with different backend persistent layer such as MongoDB, Hive, etc. Cache Layer is used to address the performance issue when the actual feature extraction operation is computationally expensive.
+<img style="float: center;" src="doc/diagrams/nebula_design_diagram.jpg">
+The Nebula is built for sharing features extracted using pySpark, but works for other framwork as well, e.g., pandas. The core idea is to share the feature extraction logic instead of actual dataset. The provider pattern enables the Nebula to work with different backend persistent layer such as MongoDB, Hive, etc. Cache Layer is used to address the performance issue when the actual feature extraction operation is computationally expensive.
 
 # Install
 ```
