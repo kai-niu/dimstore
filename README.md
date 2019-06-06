@@ -48,7 +48,7 @@ pip install Nebula  #package is not published yet
 
 # Examples
 
-* Create Feature Store
+1. Create the feature store object
 
 ```python
  from src.core.store import Store
@@ -69,7 +69,7 @@ pip install Nebula  #package is not published yet
  - Supported Serializers:  ['dill Serializer (default)']
 ```
 
-* Register Feature
+2. Register feature into the feature store
 
 ``` python
  # init feature meta data
@@ -91,7 +91,7 @@ pip install Nebula  #package is not published yet
  foo_scaler 	 4c4c7b9d-aafe-494f-860e-b136db4615f7 	 05, Jun 2019 	 Kai Niu
 ```
 
-* Checkout Feature
+3. Checkout feature from the feature store
 
 ``` python
  # init uid and params
