@@ -1,2 +1,4 @@
 dill >= 0.2.9
 pickleshare >= 0.7.5
+pytest >= 4.6.2
+pytest-cov >= 2.6.1

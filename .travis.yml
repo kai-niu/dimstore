@@ -4,7 +4,8 @@ python:
   - "3.7"
 
 script:
-  - echo 'no test performed!'
+  - pip install -r requirements.txt
+  - python -m pytest --cov=nebula
 
 install:
   - echo 'nothing installed!'
