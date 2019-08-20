@@ -6,6 +6,9 @@ from nebula.providers.persistor.persistor_factory import PersistorFactory
 from nebula.providers.serializer.serializer_factory import SerializerFactory
 from nebula.providers.cache.cache_layer_factory import CacheLayerFactory
 from nebula.providers.meta_manager.meta_manager_factory import MetaManagerFactory 
+from nebula.core.feature_metadata import FeatureMetaData
+from nebula.core.metadata_keys import MetadataKeys
+from nebula.utility.file_functions import read_text_file, http_read_file, parse_file_protocol, parse_file_uri
 
 
 """
@@ -22,11 +25,15 @@ class Store():
     """
     def __init__(self, config_file_path, verbose=True):
         self.config = None
+        self.metakeys = MetadataKeys()
         self.verbose = verbose
 
         # read store configuration
-        with open(config_file_path, "r") as config_file:
-            self.config = json.loads(config_file.read())
+        config_data = self.__fetch_config__(config_file_path)
+        if config_data == None:
+            raise Exception('Load configuration file failed: %s'%(config_file_path))
+        else:
+            self.config = json.loads(config_data)
 
         # init serializer factory
         self.serializer_factory = SerializerFactory(self.config)
@@ -39,7 +46,30 @@ class Store():
 
         # init console
         self.meta_manager_factory = MetaManagerFactory(self.config)
-        self.meta_manager = self.meta_manager_factory.get_meta_manager() 
+        self.meta_manager = self.meta_manager_factory.get_meta_manager()
+
+    def __fetch_config__(self, config_file_path):
+        config = None
+        # parse config file protocol
+        protocol = parse_file_protocol(config_file_path)
+        # read config file based on the protocol
+        if protocol == 'http' or protocol == 'https':
+            config = http_read_file(config_file_path)
+        elif protocol == 'file':
+            dirname, filename = parse_file_uri(config_file_path)
+            config = read_text_file(dirname,filename)
+        else:
+            pass
+        return config
+
+    """
+    "  return an instance of feature metadata instance
+    """
+    def build_feature_metadata(self, name, namespace='default'):
+        meta_data = FeatureMetaData(name, namespace=namespace)
+        meta_data.persistor = self.config['default_persistor']
+        meta_data.serializer = self.config['default_serializer']
+        return meta_data
 
     """
     "  register the feature to store
@@ -88,26 +118,37 @@ class Store():
             self.meta_manager.remove_feature(feature_id, **kwargs)
 
     """
-        list all available features
+        list all matched features by filter function in given matched namespace
     """
-    def catalog(self, **kwargs):
-        feature_list =  self.meta_manager.list_features(**kwargs)
+    def list_features(self, namespace='default', **kwargs):
+        feature_list =  self.meta_manager.list_features(namespace=namespace, **kwargs)
         print('== Feature Catalog ==')
         for _,v in feature_list.items():
-            print('%s \t %s \t %s \t %s'%(v.name, v.uid, "{:%d, %b %Y}".format(v.create_date), v.author))
+            print('%s \t %s \t %s \t %s'%(v.name, v.namespace, "{:%d, %b %Y}".format(v.create_date), v.author))
+
+    """
+    "
+    "   list all namespaces defined in feature store
+    "
+    """
+    def list_namespaces(self, **kwargs):
+        namespace_list = self.meta_manager.list_namespaces(**kwargs)
+        print('== Namespace List ==')
+        for ns in namespace_list:
+            print(ns)
     
     """
         show feature detail info
     """
-    def feature_info(self, uid, **kwargs):
-        feature = self.meta_manager.inspect_feature(uid)
+    def feature_info(self, name, namespace, **kwargs):
+        feature = self.meta_manager.inspect_feature(name)
         if feature != None:
             print('== Feature Detail ==')
             print('%s \t %s \t %s \t %s'%(feature.name, feature.uid, "{:%d, %b %Y}".format(feature.create_date), feature.author))
             print("params: ")
-            for p,v in feature.params.items():
+            for p,v in feature.get_value('params').items():
                 print(" "*4, "%s: %s"%(p,v))
-            print("comments: %s"%(feature.comment))
+            print("comments: %s"%(feature.get_value('comment')))
 
     """
         show store info
@@ -119,9 +160,6 @@ class Store():
         print("- Supported Persistors: ", self.persistor_factory.info())
         print("- Supported Serializers: ", self.serializer_factory.info())
         print("- Supported Cache Layers: ", self.cache_layer_factory.info())
-        # check # of features available store
-        feature_list =  self.meta_manager.list_features(**kwargs)
-        print("- Features Available: ", len(feature_list))
 
 
 

@@ -11,9 +11,9 @@ class MetaManagerFactory():
 
     # meta manager factory
     def get_meta_manager(self):
-        if self.config['meta_manager'] == 'default':
-            return FlatFileMetaManager(self.config['meta_manager_providers'])
+        if self.config['meta_manager'] == 'flat_file_meta_manager':
+            return FlatFileMetaManager(self.config['meta_manager_providers']['flat_file_meta_manager'])
 
     # return supported meta manager info
     def info(self):
-        return ['flat file meta manager (default)']
+        return ['flat_file_meta_manager: flat file meta manager.']

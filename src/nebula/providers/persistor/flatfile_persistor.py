@@ -7,7 +7,7 @@ from nebula.utility.file_functions import file_exist, write_binary_file, read_bi
 class FlatFilePersistor(PersistorBase):
     def __init__(self, config):
         self.config = config
-        self.path = '%s/%s' % (config['default']['root_dir'], config['default']['folder_name'])
+        self.path = '%s/%s' % (config['root_dir'], config['folder_name'])
 
     def write(self, feature, dumps, **kwargs):
         filename = '%s.dill'%(feature.uid)

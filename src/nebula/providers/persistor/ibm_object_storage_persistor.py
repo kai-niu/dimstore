@@ -6,15 +6,18 @@
 from nebula.providers.persistor.persistor_base import PersistorBase
 from botocore.client import Config
 import ibm_boto3
+import warnings
+
+warnings.filterwarnings("ignore")
 
 class IBMObjectStoragePersistor(PersistorBase):
     def __init__(self, config):
         self.config = config
-        self.IAM_SERVICE_ID = 'iam-ServiceId-1915183a-47f4-4c9f-81c3-a246ba40d916'
-        self.IBM_API_KEY_ID = '4r8w7hJilAQyo4VrdBqUnhbXA5qfratq25FP1IsgvKh_'
-        self.ENDPOINT = 'https://s3.us.cloud-object-storage.appdomain.cloud'
-        self.IBM_AUTH_ENDPOINT = 'https://iam.bluemix.net/oidc/token'
-        self.BUCKET = 'foobar-bucket'
+        self.IAM_SERVICE_ID = config['iam_service_id']
+        self.IBM_API_KEY_ID = config['ibm_api_key_id']
+        self.ENDPOINT = config['endpoint']
+        self.IBM_AUTH_ENDPOINT = config['ibm_auth_endpoint']
+        self.BUCKET = config['bucket']
         self.client = self.__get_boto_client__()
 
 
@@ -42,11 +45,13 @@ class IBMObjectStoragePersistor(PersistorBase):
         """
         # client to access IBM Object Storage
         filename = '%s.dill'%(uid)
+        content = None
         try:
             body = self.client.get_object(Bucket=self.BUCKET,Key=filename)['Body']
+            content = body.read()
         except Exception as e:
             print('> ibm boto read operation failed! \n',e)
-        return body
+        return content
 
     def delete(self, uid, **kwargs):
         """
@@ -67,9 +72,14 @@ class IBMObjectStoragePersistor(PersistorBase):
         @param::none:
         return the ibm boto client instance
         """
-        client = ibm_boto3.client(service_name='s3',
-                                  ibm_api_key_id=self.IBM_API_KEY_ID,
-                                  ibm_auth_endpoint=self.IBM_AUTH_ENDPOINT,
-                                  config=Config(signature_version='oauth'),
-                                  endpoint_url=self.ENDPOINT)
+        client = None
+        try:
+            client = ibm_boto3.client(service_name='s3',
+                                    ibm_api_key_id=self.IBM_API_KEY_ID,
+                                    ibm_auth_endpoint=self.IBM_AUTH_ENDPOINT,
+                                    config=Config(signature_version='oauth'),
+                                    endpoint_url=self.ENDPOINT)
+        except Exception as e:
+            print('> ibm boto client initialization failed! \n', e)
+
         return client

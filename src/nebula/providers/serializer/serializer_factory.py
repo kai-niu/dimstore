@@ -10,9 +10,9 @@ class SerializerFactory():
 
     # book keeper factory
     def get_serializer(self, type):
-        if type == 'default':
-            return DillSerializer(self.config['serializer_providers'])
+        if type == 'dill_serializer':
+            return DillSerializer(self.config['serializer_providers']['dill_serializer'])
 
     # return supported serializer info
     def info(self):
-        return ['dill Serializer (default)']
+        return ['dill_serializer: dill Serializer.']
