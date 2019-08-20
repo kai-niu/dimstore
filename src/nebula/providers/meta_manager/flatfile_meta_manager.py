@@ -42,7 +42,7 @@ class FlatFileMetaManager(MetaManagerBase):
             # read and deserialize catalog object
             bytes_obj = read_binary_file(self.path, self.filename)
             catalog = pl.loads(bytes_obj)
-        return catalog.keys()
+        return catalog.keys(),list(map(len,catalog.values()))
 
     def lookup(self, name, namespace='default', **kwargs):
         # check edge case

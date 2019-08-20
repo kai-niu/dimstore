@@ -6,6 +6,7 @@ from nebula.providers.persistor.persistor_factory import PersistorFactory
 from nebula.providers.serializer.serializer_factory import SerializerFactory
 from nebula.providers.cache.cache_layer_factory import CacheLayerFactory
 from nebula.providers.meta_manager.meta_manager_factory import MetaManagerFactory 
+from nebula.providers.output_render.output_render_factory import OutputRenderFactory
 from nebula.core.feature_metadata import FeatureMetaData
 from nebula.core.metadata_keys import MetadataKeys
 from nebula.utility.file_functions import read_text_file, http_read_file, parse_file_protocol, parse_file_uri
@@ -44,6 +45,9 @@ class Store():
         # init persistor factory
         self.persistor_factory = PersistorFactory(self.config)
 
+        # init output render
+        self.output_render_factory = OutputRenderFactory(self.config)
+        self.output_render = self.output_render_factory.get_output_render()
         # init console
         self.meta_manager_factory = MetaManagerFactory(self.config)
         self.meta_manager = self.meta_manager_factory.get_meta_manager()
@@ -122,9 +126,7 @@ class Store():
     """
     def list_features(self, namespace='default', **kwargs):
         feature_list =  self.meta_manager.list_features(namespace=namespace, **kwargs)
-        print('== Feature Catalog ==')
-        for _,v in feature_list.items():
-            print('%s \t %s \t %s \t %s'%(v.name, v.namespace, "{:%d, %b %Y}".format(v.create_date), v.author))
+        self.output_render.feature_list(feature_list)
 
     """
     "
@@ -132,10 +134,8 @@ class Store():
     "
     """
     def list_namespaces(self, **kwargs):
-        namespace_list = self.meta_manager.list_namespaces(**kwargs)
-        print('== Namespace List ==')
-        for ns in namespace_list:
-            print(ns)
+        namespace_data = self.meta_manager.list_namespaces(**kwargs)
+        self.output_render.namespace_list(namespace_data)
     
     """
         show feature detail info
@@ -160,6 +160,7 @@ class Store():
         print("- Supported Persistors: ", self.persistor_factory.info())
         print("- Supported Serializers: ", self.serializer_factory.info())
         print("- Supported Cache Layers: ", self.cache_layer_factory.info())
+        print("- Supported Output Render Layers: ", self.output_render_factory.info())
 
 
 

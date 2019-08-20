@@ -4,7 +4,7 @@
 
 from nebula.providers.output_render.html_render import HtmlRender
 
-class MetaManagerFactory():
+class OutputRenderFactory():
 
     def __init__(self, config):
         self.config = config
@@ -12,7 +12,7 @@ class MetaManagerFactory():
     # output render factory
     def get_output_render(self):
         if self.config['output_render'] == 'html_render':
-            return HtmlRender(self.config['output_render']['html_render'])
+            return HtmlRender(self.config['output_render_providers']['html_render'])
 
     # return supported meta manager info
     def info(self):
