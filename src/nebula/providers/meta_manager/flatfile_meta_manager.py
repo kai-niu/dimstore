@@ -30,97 +30,19 @@ class FlatFileMetaManager(MetaManagerBase):
         self.__save_catalog__(catalog, namespace = namespace)
 
 
-    def list_features(self, namespace=None, match_child=True, **kwargs):
-        filter_func = None
-        if 'filter' in kwargs:
-            filter_func = kwargs['filter']
-        return self.__query_features__(namespace=namespace, match_child=match_child, filter=filter_func)
-
-    def list_namespaces(self, **kwargs):
-        catalog = {}
-        if file_exist(self.path, self.filename):
-            # read and deserialize catalog object
-            bytes_obj = read_binary_file(self.path, self.filename)
-            catalog = pl.loads(bytes_obj)
-        return catalog.keys(),list(map(len,catalog.values()))
-
-    def lookup(self, name, namespace='default', **kwargs):
-        # check edge case
-        if name == None or name.strip() == '':
-            return None
-        # lookup feature by name, O(n)
-        catalog = self.__get_catalog__(namespace=namespace)
-        if catalog != None:
-            for _,v in catalog.items():
-                if v.name.lower() == name.lower():
-                    return v.uid
-        return None
-
-    def inspect_feature(self, uid, **kwargs):
-        if not file_exist(self.path, self.filename):
-            catalog = {}
-        else:
-            bytes_obj = read_binary_file(self.path, self.filename)
-            catalog = pl.loads(bytes_obj)
-
-        if uid in catalog:
-            return catalog[uid]
-        else:
-            return None
-
-    def remove_feature(self, uid, **kwargs):
-
-        # check if book catalog file exist and
-        # read in the catalog dictionary 
-        if not file_exist(self.path, self.filename):
-            catalog = {}        
-        else:
-            bytes_obj = read_binary_file(self.path, self.filename)
-            catalog = pl.loads(bytes_obj)
-            if uid in catalog: del catalog[uid]
-
-        # write back catalog bytes object
-        dumps = pl.dumps(catalog)
-        write_binary_file(self.path, self.filename, dumps)
-    
     """
     "
-    " query the features from the catalog objects
+    " read feature meta data by given namespace
     "
     """
-    def __query_features__(self,namespace=None, match_child=True, filter=None):
-        # handle edge cases
-        if filter != None and not callable(filter):
-            raise Exception('> query_catalog: the filter object is not callable!')
-
-        # match the catalog(s) by namespace
-        catalog_list = self.__match_catalog__(namespace=namespace, match_child=match_child)
-
-        # query the catalog
-        result = {}
-        if filter == None:
-            filter = lambda foo : True
-        for catalog in catalog_list:
-            try:
-                for k,v in catalog.items():
-                    if filter(v):
-                        result[k] = v
-            except Exception as e:
-                print('> query_catalog: query operation raise error: \n', e)
-        return result
-
-    """
-    "
-    " match the catalog by namespace
-    "
-    """
-    def __match_catalog__(self, namespace='default', match_child=True):
+    def read(self, namespace='default', match_child=True, **kwargs):
         """
         @param::namespace: the namespace in string
         @param::match_child: boolean value indicate whether match sub namespaces
-        return a list of catalog objects
+        @param::kwargs: the keyword parameter list
+        return a dictionary of {uid:feature meta data}
         """
-        catalog_list = []
+        feature_dict = {}
         if file_exist(self.path, self.filename):
             bytes_obj = read_binary_file(self.path, self.filename)
             catalog = pl.loads(bytes_obj)
@@ -128,11 +50,55 @@ class FlatFileMetaManager(MetaManagerBase):
             if match_child:
                 for key_ns in catalog:
                     if self.__namespace_match__(canonical_ns, key_ns):
-                        catalog_list.append(catalog[key_ns])
+                        feature_dict.update(catalog[key_ns])
             else:
                 if canonical_ns in catalog:
-                    catalog_list.append(catalog[canonical_ns])
-        return catalog_list
+                    feature_dict = catalog[canonical_ns]
+        return feature_dict
+
+    """
+    "
+    " get all namespaces in feature store
+    "
+    """
+    def namespaces(self, **kwargs):
+        """
+        @param::kwargs: keyword parameter list
+        return list of canonical namespace objects and the counts of features in that namespace
+        """
+        catalog = {}
+        if file_exist(self.path, self.filename):
+            # read and deserialize catalog object
+            bytes_obj = read_binary_file(self.path, self.filename)
+            catalog = pl.loads(bytes_obj)
+        return catalog.keys(),list(map(len,catalog.values()))
+
+    """
+    "
+    " remove features in the given FeatureSet instance
+    "
+    """
+    def remove(self, feature_set, **kwargs):
+        """
+        @param::feature_set: the instance of FeatureSet class
+        @param::kwargs: keyword parameter list
+        return none
+        """
+        pass
+
+    """
+    "
+    " update features in the given FeatureSet instance
+    "
+    """
+    def update(self, feature_set, **kwargs):
+        """
+        @param::feature_set: the instance of FeatureSet class
+        @param::kwargs: keyword parameter list
+        return none
+        """
+        pass
+    
 
     """
     "

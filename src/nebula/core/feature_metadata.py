@@ -14,11 +14,12 @@ class FeatureMetaBase(object):
 
 class FeatureMetaData(FeatureMetaBase):
 
-    def __init__(self, name, namespace = 'default'):
+    def __init__(self, name, index, namespace = 'default'):
         super().__setattr__('metadata', 
                                                 {
                                                     'uid': str(uuid.uuid4()),
                                                     'name': name,
+                                                    'index': index,
                                                     'namespace': namespace,
                                                     'author':"",
                                                     'tags': set([]),

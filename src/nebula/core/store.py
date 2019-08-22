@@ -7,8 +7,10 @@ from nebula.providers.serializer.serializer_factory import SerializerFactory
 from nebula.providers.cache.cache_layer_factory import CacheLayerFactory
 from nebula.providers.meta_manager.meta_manager_factory import MetaManagerFactory 
 from nebula.providers.output_render.output_render_factory import OutputRenderFactory
+from nebula.providers.dataframe_jointer.dataframe_jointer_factory import DataframeJointerFactory
 from nebula.core.feature_metadata import FeatureMetaData
-from nebula.core.metadata_keys import MetadataKeys
+from nebula.core.feature_set import FeatureSet
+from nebula.core.metadata_builder import MetadataBuilder
 from nebula.utility.file_functions import read_text_file, http_read_file, parse_file_protocol, parse_file_uri
 
 
@@ -26,9 +28,8 @@ class Store():
     """
     def __init__(self, config_file_path, verbose=True):
         self.config = None
-        self.metakeys = MetadataKeys()
         self.verbose = verbose
-
+        self.metadata = MetadataBuilder(self)
         # read store configuration
         config_data = self.__fetch_config__(config_file_path)
         if config_data == None:
@@ -48,6 +49,7 @@ class Store():
         # init output render
         self.output_render_factory = OutputRenderFactory(self.config)
         self.output_render = self.output_render_factory.get_output_render()
+
         # init console
         self.meta_manager_factory = MetaManagerFactory(self.config)
         self.meta_manager = self.meta_manager_factory.get_meta_manager()
@@ -67,15 +69,6 @@ class Store():
         return config
 
     """
-    "  return an instance of feature metadata instance
-    """
-    def build_feature_metadata(self, name, namespace='default'):
-        meta_data = FeatureMetaData(name, namespace=namespace)
-        meta_data.persistor = self.config['default_persistor']
-        meta_data.serializer = self.config['default_serializer']
-        return meta_data
-
-    """
     "  register the feature to store
     """
     def register(self, feature, pipeline, **kwargs):
@@ -90,43 +83,13 @@ class Store():
         # add new registered feature into store catelog
         self.meta_manager.register(feature)
 
-
-    """
-        retrieve feature from store
-    """
-    def checkout(self, feature_id, params, **kwargs):
-        # read in the feature object 
-        feature = self.meta_manager.lookup(feature_id)
-        if feature != None:
-            # retrieve the serialized pipeline
-            persistor = self.persistor_factory.get_persistor(feature.persistor)
-            dumps = persistor.read(feature_id, **kwargs)
-            # deserialize the pipeline
-            serializer = self.serializer_factory.get_serializer(feature.serializer)
-            pipeline = serializer.decode(dumps, **kwargs)
-
-            return pipeline(params)
-        else:
-            return None
-
-    """
-        remove feature from store
-    """
-    def remove(self, feature_id, **kwargs):
-        # read in the feature object 
-        feature = self.meta_manager.lookup(feature_id)
-        if feature != None:
-            # retrieve the serialized pipeline
-            persistor = self.persistor_factory.get_persistor(feature.persistor)
-            persistor.delete(feature_id, **kwargs)
-            self.meta_manager.remove_feature(feature_id, **kwargs)
-
     """
         list all matched features by filter function in given matched namespace
     """
-    def list_features(self, namespace='default', **kwargs):
-        feature_list =  self.meta_manager.list_features(namespace=namespace, **kwargs)
-        self.output_render.feature_list(feature_list)
+    def features(self, namespace='default', match_child=True, **kwargs):
+        ufd = self.meta_manager.read(namespace=namespace, match_child=match_child, **kwargs)
+        return FeatureSet(self, ufd=ufd)
+        
 
     """
     "
@@ -134,21 +97,10 @@ class Store():
     "
     """
     def list_namespaces(self, **kwargs):
-        namespace_data = self.meta_manager.list_namespaces(**kwargs)
+        namespace_data = self.meta_manager.namespaces(**kwargs)
         self.output_render.namespace_list(namespace_data)
     
-    """
-        show feature detail info
-    """
-    def feature_info(self, name, namespace, **kwargs):
-        feature = self.meta_manager.inspect_feature(name)
-        if feature != None:
-            print('== Feature Detail ==')
-            print('%s \t %s \t %s \t %s'%(feature.name, feature.uid, "{:%d, %b %Y}".format(feature.create_date), feature.author))
-            print("params: ")
-            for p,v in feature.get_value('params').items():
-                print(" "*4, "%s: %s"%(p,v))
-            print("comments: %s"%(feature.get_value('comment')))
+  
 
     """
         show store info
@@ -163,5 +115,89 @@ class Store():
         print("- Supported Output Render Layers: ", self.output_render_factory.info())
 
 
+    """
+    "
+    " render the feature list to output, intended to be called by FeatureSet object
+    " through store proxy object.
+    "
+    """
+    def list_features(self, feature_list):
+        self.output_render.feature_list(feature_list)
+
+
+    """
+    "
+    " build features into dataframe, intended to be called by FeatureSet object
+    " through store proxy object.
+    "
+    """
+    def build(self, ufd, dataframe='pyspark', verbose=True, **kwargs):
+        """
+        @param::ufd: the {uid:feature} dictioary
+        @param::dataframe: the dataframe type in string
+        @param::verbose: toggle log information
+        @param::kwargs: the keyworded parameters
+        return the dataframe built from feature list
+        """
+        output_df = None
+        index1 = None
+        index2 = None
+        if ufd != None or len(ufd) > 0:
+            if verbose:
+                print('> task: build %s dataframe from %d features ...'%(dataframe, len(ufd)))         
+            for _,feature in ufd.items():
+
+                df = self.checkout(feature, verbose=verbose, **kwargs)
+                if output_df == None:
+                    output_df = df
+                    index1 = feature.index
+                else:
+                    index2 = feature.index
+                    if dataframe == 'pandas':
+                        output_df = DataframJoiner.pandas_joiner(output_df,df,index1,index2)
+                    else:
+                        output_df = DataframJoiner.pyspark_joiner(output_df,df,index1,index2)                  
+
+        return output_df
+
+    """
+    "
+    " check out feature from persistence layer
+    "
+    """
+    def checkout(self, feature, verbose=True, **kwargs):
+        """
+        @param::feature: the feature metadata object
+        @param::verbose: boolean value toggles log info output
+        @param::kwargs: the keyed parameter list
+        return the feature extracted by executing the pipeline
+        """
+        if feature != None:
+            # retrieve the serialized pipeline
+            persistor = self.persistor_factory.get_persistor(feature.persistor)
+            dumps = persistor.read(feature.uid, **kwargs)
+            # deserialize the pipeline
+            serializer = self.serializer_factory.get_serializer(feature.serializer)
+            pipeline = serializer.decode(dumps, **kwargs)
+            # execute the pipeline
+            qualify_name = '.'.join([feature.namespace,feature.name])
+            params = {}
+            if qualify_name in kwargs:
+                params = kwargs[qualify_name]
+                if verbose:
+                    print('> info: checkout "%s" feature with params: %s ...'%(feature.name, params))
+            else:
+                if verbose:
+                    print('> info: checkout "%s" feature with default params ...'%(feature.name))
+            try:
+                return pipeline(**params)
+            except Exception as e:
+                print('> error: execute feature extraction pipeline, ', e)
+        else:
+            return None
+        
+
+
+ 
 
 
