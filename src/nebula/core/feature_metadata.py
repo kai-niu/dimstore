@@ -14,7 +14,7 @@ class FeatureMetaBase(object):
 
 class FeatureMetaData(FeatureMetaBase):
 
-    def __init__(self, name, index, namespace = 'default'):
+    def __init__(self, name, index, output, namespace = 'default'):
         super().__setattr__('metadata', 
                                                 {
                                                     'uid': str(uuid.uuid4()),
@@ -24,6 +24,7 @@ class FeatureMetaData(FeatureMetaBase):
                                                     'author':"",
                                                     'tags': set([]),
                                                     'params':{},
+                                                    'output':output,
                                                     'comment':'',
                                                     'persistor':None,
                                                     'serializer':None,

@@ -3,7 +3,6 @@
 """
 import os
 import pickle as pl
-from nebula.core.metadata_keys import MetadataKeys
 from nebula.providers.meta_manager.meta_manager_base import MetaManagerBase
 from nebula.utility.file_functions import file_exist, read_binary_file, write_binary_file
 

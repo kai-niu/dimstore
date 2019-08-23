@@ -69,7 +69,7 @@ class FeatureSet():
     "
     """
     def build(self, dataframe='pyspark', verbose=True, **kwargs):
-        return self.__store_proxy__.__build__(self.__ufd__, dataframe=dataframe, verbose=verbose, **kwargs)
+        return self.__store_proxy__.build(self.__ufd__, dataframe=dataframe, verbose=verbose, **kwargs)
 
     """
     "
@@ -81,7 +81,7 @@ class FeatureSet():
         empty param intended
         return self object to enable chaining function call
         """
-        self.__store_proxy__.__list_features__(self.__ufd__)
+        self.__store_proxy__.list_features(self.__ufd__)
         return self
 
     """

@@ -11,6 +11,7 @@ class MetadataBuilder():
         self.author = 'author'
         self.dataset = 'dataset'
         self.params = 'params'
+        self.output = 'output'
         self.comment = 'comment'
         self.create_date = 'create_date'
         self.persistor = 'persistor'
@@ -37,6 +38,7 @@ class MetadataBuilder():
                 'author',
                 'dataset',
                 'params',
+                'output',
                 'comment',
                 'create_date',
                 'persistor',
@@ -47,7 +49,7 @@ class MetadataBuilder():
     " build the feature metadata object
     "
     """
-    def feature(self, name, index, namespace=None):
+    def feature(self, name, index, output, namespace=None):
         """
         @param::name: feature name in string
         @param::index: feature index column in string
@@ -56,10 +58,13 @@ class MetadataBuilder():
         """
         # check edge case
         if name == None or name.strip() == '':
-            raise Exception('> MetadataBuilder build method: feature name can not be None or empty!')
+            raise ValueError('> MetadataBuilder.build(): feature name can not be None or empty!')
         if index == None or name.strip() == '':
-            raise Exception('> MetadataBuilder build method: feature index name can not be None or empty!')
-        meta_data = FeatureMetaData(name, index, namespace=namespace)
+            raise ValueError('> MetadataBuilder.build(): feature index can not be None or empty!')
+        if output == None or output.strip() == '':
+            raise ValueError('> MetadataBuilder.build(): feature output type can not be None or empty!')
+        # assign default value
+        meta_data = FeatureMetaData(name, index, output, namespace=namespace)
         meta_data.persistor = self.store_proxy.config['default_persistor']
         meta_data.serializer = self.store_proxy.config['default_serializer']
         return meta_data

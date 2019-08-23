@@ -7,7 +7,7 @@ from nebula.providers.serializer.serializer_factory import SerializerFactory
 from nebula.providers.cache.cache_layer_factory import CacheLayerFactory
 from nebula.providers.meta_manager.meta_manager_factory import MetaManagerFactory 
 from nebula.providers.output_render.output_render_factory import OutputRenderFactory
-from nebula.providers.dataframe_jointer.dataframe_jointer_factory import DataframeJointerFactory
+from nebula.providers.dataframe.processor_factory import DataframeProcessorFactory
 from nebula.core.feature_metadata import FeatureMetaData
 from nebula.core.feature_set import FeatureSet
 from nebula.core.metadata_builder import MetadataBuilder
@@ -113,6 +113,7 @@ class Store():
         print("- Supported Serializers: ", self.serializer_factory.info())
         print("- Supported Cache Layers: ", self.cache_layer_factory.info())
         print("- Supported Output Render Layers: ", self.output_render_factory.info())
+        print("- Supported Dataframe Operations: ", DataframeProcessorFactory.info())
 
 
     """
@@ -139,25 +140,28 @@ class Store():
         @param::kwargs: the keyworded parameters
         return the dataframe built from feature list
         """
-        output_df = None
-        index1 = None
-        index2 = None
         if ufd != None or len(ufd) > 0:
             if verbose:
-                print('> task: build %s dataframe from %d features ...'%(dataframe, len(ufd)))         
+                print('> task: build %s dataframe from %d features ...'%(dataframe, len(ufd)))
+            # init
+            output_df = None
+            in_df = None
+            index1 = None
+            index2 = None  
+            cold_start = True  
             for _,feature in ufd.items():
-
-                df = self.checkout(feature, verbose=verbose, **kwargs)
-                if output_df == None:
-                    output_df = df
+                in_df = self.checkout(feature, dataframe, verbose=verbose, **kwargs)
+                if cold_start:
+                    output_df = in_df
                     index1 = feature.index
+                    cold_start = False
                 else:
                     index2 = feature.index
-                    if dataframe == 'pandas':
-                        output_df = DataframJoiner.pandas_joiner(output_df,df,index1,index2)
-                    else:
-                        output_df = DataframJoiner.pyspark_joiner(output_df,df,index1,index2)                  
-
+                    # query supported jointers
+                    jointer = DataframeProcessorFactory.get_jointer(dataframe)
+                    if jointer == None:
+                        raise Exception('> Store.build(): join "%s" datafram is not supported.'%(dataframe))
+                    output_df = jointer.try_join(output_df,in_df,index1,index2)               
         return output_df
 
     """
@@ -165,13 +169,27 @@ class Store():
     " check out feature from persistence layer
     "
     """
-    def checkout(self, feature, verbose=True, **kwargs):
+    def checkout(self, feature, out_type, verbose=True, **kwargs):
         """
-        @param::feature: the feature metadata object
-        @param::verbose: boolean value toggles log info output
-        @param::kwargs: the keyed parameter list
+        @param::feature: the FeatureMetaData object
+        @param::out_type: the output feature datafram type in string
+        @param::verbose: the boolean value toggles log info output
+        @param::kwargs: the keyworded parameter list
         return the feature extracted by executing the pipeline
         """
+        # check edge case
+        if out_type == None:
+            raise ValueError('> Store.checkout(): the output dataframe type can not be None.')
+        if not isinstance(feature, FeatureMetaData):
+             raise TypeError('> Store.checkout(): the feature object is not an instance of FeatureMetaData class.')
+        df_converter = DataframeProcessorFactory.get_converter(feature.output, out_type)
+        if df_converter == None:
+            raise Exception('> Store.checkout(): convert operation does not support the output dataframe.')
+        df_normalizer = DataframeProcessorFactory.get_normalizer(feature.output)
+        if df_normalizer == None:
+            raise Exception('> Store.checkout(): normalizer does not support the feature dataframe.')
+
+        # extract feature dataframe
         if feature != None:
             # retrieve the serialized pipeline
             persistor = self.persistor_factory.get_persistor(feature.persistor)
@@ -185,12 +203,13 @@ class Store():
             if qualify_name in kwargs:
                 params = kwargs[qualify_name]
                 if verbose:
-                    print('> info: checkout "%s" feature with params: %s ...'%(feature.name, params))
+                    print('> info: checkout %s feature "%s" with params: %s ...'%(feature.output, feature.name, params))
             else:
                 if verbose:
-                    print('> info: checkout "%s" feature with default params ...'%(feature.name))
+                    print('> info: checkout %s feature "%s" with default params ...'%(feature.output, feature.name))
             try:
-                return pipeline(**params)
+                qualified_df = df_normalizer.qualify_column(pipeline(**params),feature)
+                return df_converter.astype( qualified_df, out_type)
             except Exception as e:
                 print('> error: execute feature extraction pipeline, ', e)
         else:
