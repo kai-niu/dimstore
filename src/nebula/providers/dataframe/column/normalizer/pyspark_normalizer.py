@@ -48,7 +48,7 @@ class PysparkNormalizer():
         cols = []
         for c in df.columns:
             if c.lower() != feature.index.lower():
-                cols.append('_'.join([feature.namespace,feature.name,c]))
+                cols.append('_'.join([feature.namespace,feature.name,c]).replace('.','_'))
             else:
                 cols.append(c)
         return df.toDF(*cols)

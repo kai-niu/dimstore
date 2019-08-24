@@ -181,7 +181,7 @@ class Store():
         if out_type == None:
             raise ValueError('> Store.checkout(): the output dataframe type can not be None.')
         if not isinstance(feature, FeatureMetaData):
-             raise TypeError('> Store.checkout(): the feature object is not an instance of FeatureMetaData class.')
+            raise TypeError('> Store.checkout(): the feature object is not an instance of FeatureMetaData class.')
         df_converter = DataframeProcessorFactory.get_converter(feature.output, out_type)
         if df_converter == None:
             raise Exception('> Store.checkout(): convert operation does not support the output dataframe.')

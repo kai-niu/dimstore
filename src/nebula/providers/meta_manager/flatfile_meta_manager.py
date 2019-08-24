@@ -83,6 +83,9 @@ class FlatFileMetaManager(MetaManagerBase):
         @param::kwargs: keyword parameter list
         return none
         """
+        # read the catalog object
+        # remove the featurece
+        # save back
         pass
 
     """
@@ -96,6 +99,9 @@ class FlatFileMetaManager(MetaManagerBase):
         @param::kwargs: keyword parameter list
         return none
         """
+        # read the catalog object
+        # replace the featurece
+        # save back
         pass
     
 

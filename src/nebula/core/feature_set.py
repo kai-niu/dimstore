@@ -86,6 +86,24 @@ class FeatureSet():
 
     """
     "
+    " union two featureset together
+    "
+    """
+    def union(self, input_feature_set):
+        """
+        @param::input_feature_set: the input feature set to union against
+        return the FeatureSet object contains the unioned list of feature metadata
+        """
+        if input_feature_set != None:
+            # check edge case
+            if not isinstance(input_feature_set, type(self)):
+                raise TypeError('> FeatureSet.union(): the input object is not instance FeatureSet.')
+            # union the ufd dictionary
+            self.__ufd__.update(input_feature_set.__ufd__)
+        return self
+
+    """
+    "
     " get the list of features selected
     "
     """
