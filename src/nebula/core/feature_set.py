@@ -4,6 +4,7 @@
 " the idea is similar to the object mapping to data in database.
 "
 """
+import copy
 
 class FeatureSet():
     def __init__(self, store_proxy, ufd = None):
@@ -62,6 +63,73 @@ class FeatureSet():
             if filter != None:
                 self.__query__(filter=filter)
         return self
+
+    """
+    "
+    " delete features from the persistence layer
+    "
+    """
+    def delete(self, verbose=True, **kwargs):
+        """
+        @param::verbose: toggle log information output.
+        return self object to enable chaining function call
+        """
+        self.__store_proxy__.delete(self.__ufd__, verbose)
+        self.__ufd__ = {}
+        return self
+
+    
+    """
+    "
+    " update features and save to the persist layer
+    "
+    """
+    def update(self, key_values=None, updater=None, strict_mode=True, verbose=True, **kwargs):
+        """
+        @param::new_values: the key-value pairs used to update the features in current ufd set.
+        @param::update: the update function apply to each feature in ufd. It take a feature in and returns an updated feature.
+        @param::strict_mode: toggle strict mode. In the strict mode, the features are updated strictly when no warning or exception raised.
+        @param::verbose: toggle log information output.
+        return self object to enable chaining function call
+        """
+        # init local ufd based on strict_mode status
+        update_state = True
+        update_count = 0
+        if strict_mode:
+            ufd = copy.deepcopy(self.__ufd__)
+        else:
+            ufd = self.__ufd__
+        # assign new values in the kvp list(dictionary)
+        if isinstance(key_values, dict) and len(key_values) > 0:
+            for key, value in key_values.items():
+                for feature in ufd.values():
+                    if key in feature.metadata:
+                        feature.metadata[key] = value
+                        update_count += 1
+                    else:
+                        update_state = False
+                        print('> update: key "%s" is not an existing metadata key, skipped!'%(key))
+        # apply updater function
+        if callable(updater):
+            for feature in ufd.values():
+                try:
+                    updater(feature)
+                    update_count += 1
+                except Exception as e:
+                    update_state = False
+                    print('> update: user updater function failed with exception => %s'%(e))
+        # decide whether or not to proceed to the persistence logics
+        if update_count > 0:
+            if update_state or not strict_mode:
+                self.__store_proxy__.update(ufd, verbose)
+                self.__ufd__ = ufd
+            else:
+                print('> update: the updates are not committed in strict mode when error/warning occurs.')
+        else:
+            print('> update: no update is performed.')
+        return self
+
+
     
     """
     "

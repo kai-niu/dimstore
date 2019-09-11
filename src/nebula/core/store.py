@@ -125,6 +125,33 @@ class Store():
     def list_features(self, feature_list):
         self.output_render.feature_list(feature_list)
 
+    """
+    "
+    " delete the features from the store
+    " 
+    """
+    def delete(self, ufd, verbose=True, **kwargs):
+        """
+        @param::ufd: the {uid:feature} dictioary
+        @param::verbose: toggle the log information output
+        @param::kwargs: the keyworded parameters
+        return the dataframe built from feature list
+        """
+        self.meta_manager.delete(ufd, verbose)
+    
+    """
+    "
+    " update the features from the store
+    " 
+    """
+    def update(self, ufd, verbose=True, **kwargs):
+        """
+        @param::ufd: the {uid:feature} dictioary
+        @param::verbose: toggle the log information output
+        @param::kwargs: the keyworded parameters
+        return the dataframe built from feature list
+        """
+        self.meta_manager.update(ufd, verbose)
 
     """
     "

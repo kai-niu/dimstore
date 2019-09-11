@@ -4,6 +4,7 @@
 import os
 import pickle as pl
 from nebula.providers.meta_manager.meta_manager_base import MetaManagerBase
+from nebula.core.feature_set import FeatureSet
 from nebula.utility.file_functions import file_exist, read_binary_file, write_binary_file
 
 
@@ -74,35 +75,79 @@ class FlatFileMetaManager(MetaManagerBase):
 
     """
     "
-    " remove features in the given FeatureSet instance
+    " delete features in the given FeatureSet instance
     "
     """
-    def remove(self, feature_set, **kwargs):
+    def delete(self, ufd, verbose=True, **kwargs):
         """
-        @param::feature_set: the instance of FeatureSet class
+        @param::ufd: the instance of dictionary contain uid:feature pairs
         @param::kwargs: keyword parameter list
         return none
         """
-        # read the catalog object
-        # remove the featurece
-        # save back
-        pass
+        # check edge case
+        if not isinstance(ufd, dict):
+            raise ValueError('> delete: feature_set parameter is not an instance of FeatureSet class.')
+        namespace = None
+        catalog = None
+        for uid, feature in ufd.items():
+            # sanity check of feature meta data
+            self.__apply_default_namespace__(feature)
+            # load new catalog when namespace mismatch
+            if namespace != feature.namespace:
+                # save existing catalog
+                if isinstance(catalog, dict):
+                    self.__save_catalog__(catalog, namespace=namespace)
+                # load new catalog in different namespace
+                catalog = self.__get_catalog__(namespace=feature.namespace)
+                namespace = feature.namespace
+            # delete feature
+            if isinstance(catalog, dict):
+                del catalog[uid]
+        # save the last catalog back into storage
+        if isinstance(catalog, dict):
+            self.__save_catalog__(catalog, namespace=namespace)
+        if verbose:
+            print('> delete: %d feature(s) affected.'%(len(ufd)))
+        
 
     """
     "
     " update features in the given FeatureSet instance
     "
     """
-    def update(self, feature_set, **kwargs):
+    def update(self, ufd, verbose=True, **kwargs):
         """
-        @param::feature_set: the instance of FeatureSet class
+        @param::ufd: the instance of dictionary contain uid:feature pairs
         @param::kwargs: keyword parameter list
         return none
         """
-        # read the catalog object
-        # replace the featurece
-        # save back
-        pass
+        # check edge case
+        if not isinstance(ufd, dict):
+            raise ValueError('> update: feature_set parameter is not an instance of FeatureSet class.')
+        namespace = None
+        catalog = None
+        for uid, feature in ufd.items():
+            # sanity check of feature meta data
+            self.__apply_default_namespace__(feature)
+            if not self.__check_feature_name_uniqueness__(feature):
+                raise ValueError('> update: feature name "%s" is not unique in namespace "%s"'%(feature.name, feature.namespace))
+            # load new catalog when namespace mismatch
+            if namespace == None or namespace != feature.namespace:
+                # save existing catalog
+                if isinstance(catalog, dict) and len(catalog) > 0:
+                    self.__save_catalog__(catalog, namespace=namespace)
+                # load new catalog in different namespace
+                catalog = self.__get_catalog__(feature.namespace)
+                namespace = feature.namespace
+            # update feature
+            if uid in catalog:
+                catalog[uid] = feature
+        # save the last catalog back into storage
+        if isinstance(catalog, dict) and len(catalog) > 0:
+            self.__save_catalog__(catalog, namespace=namespace)
+        if verbose:
+            print('> update: %d feature(s) affected.'%(len(ufd)))
+
     
 
     """
@@ -123,16 +168,19 @@ class FlatFileMetaManager(MetaManagerBase):
             # check uniquess
             feature_name = feature.name
             namespace = feature.namespace
+            uid = feature.uid
             canonical_ns = self.__build_canonical_namespace__(namespace)
             if  canonical_ns in catalog:
                     for _,feature in catalog[canonical_ns].items():
-                        if feature.name.lower() == feature_name.lower():
+                        if feature.name.lower() == feature_name.lower() and feature.uid != uid:
                             return False
         return True
 
     """
     "
-    " read the catalog dumps and deserialize it 
+    " read the catalog dumps and deserialize it
+    " *** <note> may have performance issue when request/s is high, a cache can address this problem.
+    " *** general cache mechanism: cache catalog using namespace as key, destroy/update when cached catalog with same namespace is updated.
     "
     """
     def __get_catalog__(self, namespace=None):
@@ -172,9 +220,14 @@ class FlatFileMetaManager(MetaManagerBase):
         if file_exist(self.path, self.filename):
             bytes_obj = read_binary_file(self.path, self.filename)
             catalog = pl.loads(bytes_obj)
-            catalog[namespace] = sub_catalog
+            if len(sub_catalog) == 0:
+                # delete the namespace associate with empty sub catalog.
+                del catalog[namespace]
+            else:
+                catalog[namespace] = sub_catalog
         else:
-            catalog[namespace] = sub_catalog
+            if len(sub_catalog) > 0:
+                catalog[namespace] = sub_catalog
         dumps = pl.dumps(catalog)
         write_binary_file(self.path, self.filename, dumps)
 
