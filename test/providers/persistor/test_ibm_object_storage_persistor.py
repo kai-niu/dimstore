@@ -4,7 +4,7 @@
 import pytest
 from unittest import mock
 from nebula.providers.persistor.ibm_object_storage_persistor import IBMObjectStoragePersistor
-from nebula.core import FeatureMetaData
+from nebula.core.feature_metadata import FeatureMetaData
 
 
 @pytest.fixture(scope='function')
@@ -17,7 +17,7 @@ def mock_class(request):
 @pytest.fixture(scope='function')
 def mock_feature_meta(request):
     # mock the feature meta data class
-    meta = FeatureMetaData('test')
+    meta = FeatureMetaData('test','id','pyspark')
     meta.author ='test author'
     return meta
 
