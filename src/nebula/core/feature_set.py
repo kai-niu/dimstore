@@ -69,12 +69,12 @@ class FeatureSet():
     " delete features from the persistence layer
     "
     """
-    def delete(self, verbose=True, **kwargs):
+    def delete(self, hard=False, verbose=True, **kwargs):
         """
         @param::verbose: toggle log information output.
         return self object to enable chaining function call
         """
-        self.__store_proxy__.delete(self.__ufd__, verbose)
+        self.__store_proxy__.delete(self.__ufd__, hard, verbose)
         self.__ufd__ = {}
         return self
 

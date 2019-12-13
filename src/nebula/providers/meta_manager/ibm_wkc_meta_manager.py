@@ -1,25 +1,47 @@
 """
-"  default flat file meta data manager, keep records of all features in store
+"  
+" IBM WKC Meta Manager
+"
 """
 import os
 import pickle as pl
+import base64
+import json
 from nebula.providers.meta_manager.meta_manager_base import MetaManagerBase
 from nebula.core.feature_set import FeatureSet
-from nebula.utility.file_functions import file_exist, read_binary_file, write_binary_file
+from nebula.utility.ibm_wkc_client import wkc_catalog_client
 
 
-class FlatFileMetaManager(MetaManagerBase):
+class WastonKnowledgeCatalogMetaManager(MetaManagerBase):
 
     def __init__(self, config):
         self.config = config
-        self.path = "%s/%s"%(config['root_dir'], config['folder_name'])
-        self.filename = self.config['file_name']
+        self.catalog_name = config['catalog_name']
+        self.asset_name = config['asset_name']
+        self.uid = config['uid']
+        self.pwd = config['token']
+        self.host = config['host']
+        self.asset_type = 'feature_manager_asset'
+        self.client = self.__get_wkc_client__()
+
+        # create feature meta asset type
+        asset_types = self.client.get_asset_types()
+        if self.asset_type.lower() not in asset_types:
+            self.__init_manager_asset_type__()
+
+        # get mananger asset guid
+        self.asset_guid = self.__get_manager_asset_guid__()
+
 
     def is_unique(self, feature):
         self.__apply_default_namespace__(feature)
         return self.__check_feature_name_uniqueness__(feature)    
 
     def register(self, feature):
+        """
+        @param feature_metadata::feature: the feature meta data object
+        return none
+        """
         # handle edge case
         self.__apply_default_namespace__(feature)
         if not self.__check_feature_name_uniqueness__(feature):
@@ -43,12 +65,12 @@ class FlatFileMetaManager(MetaManagerBase):
         """
         @param::namespace: the namespace in string
         @param::match_child: boolean value indicate whether match sub namespaces
-        @param::kwargs: the keyword parameter list
+        @param::kwargs: the keyword parameter lists
         return a dictionary of {uid:feature meta data}
         """
         feature_dict = {}
-        if file_exist(self.path, self.filename):
-            bytes_obj = read_binary_file(self.path, self.filename)
+        bytes_obj = self.__read_dumps__()
+        if bytes_obj:
             catalog = pl.loads(bytes_obj)
             canonical_ns = self.__build_canonical_namespace__(namespace)
             if match_child:
@@ -71,9 +93,8 @@ class FlatFileMetaManager(MetaManagerBase):
         return list of canonical namespace objects and the counts of features in that namespace
         """
         catalog = {}
-        if file_exist(self.path, self.filename):
-            # read and deserialize catalog object
-            bytes_obj = read_binary_file(self.path, self.filename)
+        bytes_obj = self.__read_dumps__()
+        if bytes_obj:
             catalog = pl.loads(bytes_obj)
         return catalog.keys(),list(map(len,catalog.values()))
 
@@ -165,9 +186,8 @@ class FlatFileMetaManager(MetaManagerBase):
         @param::feature: the feature metadata object.
         return boolean value of uniqueness of feature name in given namespace.
         """
-        if file_exist(self.path, self.filename):
-            # read and deserialize catalog object
-            bytes_obj = read_binary_file(self.path, self.filename)
+        bytes_obj = self.__read_dumps__()
+        if bytes_obj:
             catalog = pl.loads(bytes_obj)
             # check uniquess
             feature_name = feature.name
@@ -194,9 +214,8 @@ class FlatFileMetaManager(MetaManagerBase):
         """
         catalog_rtn = {}
         namespace = self.__build_canonical_namespace__(namespace)
-        if file_exist(self.path, self.filename):
-            # read and deserialize catalog object
-            bytes_obj = read_binary_file(self.path, self.filename)
+        bytes_obj = self.__read_dumps__()
+        if bytes_obj:
             catalog = pl.loads(bytes_obj)
             if namespace in catalog:
                 catalog_rtn = catalog[namespace]        
@@ -221,8 +240,8 @@ class FlatFileMetaManager(MetaManagerBase):
         # save (sub)catalog into flat file
         catalog = {}
         namespace = self.__build_canonical_namespace__(namespace)
-        if file_exist(self.path, self.filename):
-            bytes_obj = read_binary_file(self.path, self.filename)
+        bytes_obj = self.__read_dumps__()
+        if bytes_obj:
             catalog = pl.loads(bytes_obj)
             if len(sub_catalog) == 0:
                 # delete the namespace associate with empty sub catalog.
@@ -233,7 +252,7 @@ class FlatFileMetaManager(MetaManagerBase):
             if len(sub_catalog) > 0:
                 catalog[namespace] = sub_catalog
         dumps = pl.dumps(catalog)
-        write_binary_file(self.path, self.filename, dumps)
+        self.__udpate_dumps__(dumps)
 
 
     """
@@ -292,6 +311,158 @@ class FlatFileMetaManager(MetaManagerBase):
             if part not in namespace2:
                 return False
         return True
+
+    def __get_wkc_client__(self):
+        """
+        @param::none:
+        return the ibm wkc client instance
+        """
+        client = None
+        try:
+            client = wkc_catalog_client(self.catalog_name, self.host, uid=self.uid, pwd=self.pwd, verbose=False)
+        except Exception as e:
+            print('> ibm wkc client initialization failed! \n', e)
+            raise
+
+        return client
+
+    def __read_dumps__(self):
+        """
+        @param::none
+        return the byte dumps of feature manager asset
+        """
+        content = None
+        try:
+            dumps = self.client.checkout_asset(self.asset_guid, self.asset_type)
+            content = self.__decode__(dumps)
+        except Exception as e:
+            print('> ibm WKC client read feature asset failed! \n',e)
+            raise
+        return content
+
+    def __get_manager_asset_guid__(self):
+        """
+        @param::none
+        return the guid id of feature manager asset specified name
+        """
+        assets = self.client.search_assets(type_name=self.asset_type)
+        if len(assets) == 0:
+            return self.__init_manager_asset__()
+        else:
+            # O(N) search, possible to pushdown the query to API to achieve
+            # better performance. Currently design can only result few dups.
+            for uid,name in assets.items():
+                if name.lower() == self.asset_name.lower():
+                    return uid
+            return self.__init_manager_asset__()
+
+    def __init_manager_asset_type__(self):
+        """
+        @param::none
+        return none
+        """
+        asset_type = {
+                "description": "DimStore feature manager asset",
+                "fields": [
+                {
+                    "key": "name",
+                    "type": "string",
+                    "facet": False,
+                    "is_array": False,
+                    "search_path": "name",
+                    "is_searchable_across_types": False
+                }
+            ]
+            }
+        try:
+            self.client.create_asset_type(self.asset_type,json.dumps(asset_type))
+        except Exception as e:
+            print('> WKC Meta Manager create asset type failed.', e)
+            raise
+
+    def __init_manager_asset__(self):
+        """
+        @param::none
+        return the guid of newly created manager asset.
+        """
+        byte_obj = pl.dumps({})
+        dumps = self.__encode__(byte_obj)
+        # define the features 
+        asset = {    
+                    "metadata": {
+                            "name": self.asset_name,
+                            "description": "DimStore feature metadata manager asset.",
+                            "tags": ["DimStore"],
+                            "asset_type": self.asset_type,
+                            "origin_country": "us",
+                            "rov": {
+                            "mode": 0
+                            }
+                    },
+                    "entity": {
+                        self.asset_type:{
+                            "name": self.asset_name,
+                            "dumps": dumps
+                        }
+                    }
+                }
+        # create feature
+        response = self.client.create_asset(json.dumps(asset))
+        return response['metadata']['asset_id']
+
+    """
+    "
+    " update the byte dumps of manager asset
+    "
+    """
+    def __udpate_dumps__(self, dumps):
+        """
+        @param string::dumps: stringified json metadata object
+        return none
+        """
+        str_dumps = self.__encode__(dumps)
+        ops =  [{ "op": "replace", "path": "/dumps", "value": str_dumps }]
+        self.client.update_attribute(self.asset_guid,json.dumps(ops),type_name=self.asset_type)
+
+    def __encode__(self, dumps):
+        """
+        @param bytes::dumps: the feature pipeline bytes dumps
+        return ascii encoded string using base64
+        """
+        return base64.encodebytes(dumps).decode('ascii')
+
+    def __decode__(self, dumps):
+        """
+        @param string::dumps: the feature pipeline encoded as string
+        return the orignal byte encoding produced from serialization layer
+        """
+        return base64.decodebytes(dumps.encode())
+
+
+#         ┌─┐       ┌─┐
+#      ┌──┘ ┴───────┘ ┴──┐
+#      │                 │
+#      │       ───       │
+#      │  ─┬┘       └┬─  │
+#      │                 │
+#      │       ─┴─       │
+#      │                 │
+#      └───┐         ┌───┘
+#          │         │
+#          │         │
+#          │         │
+#          │         └──────────────┐
+#          │                        │
+#          │                        ├─┐
+#          │                        ┌─┘
+#          │                        │
+#          └─┐  ┐  ┌───────┬──┐  ┌──┘
+#            │ ─┤ ─┤       │ ─┤ ─┤
+#            └──┴──┘       └──┴──┘
+#                 BLESSING FROM 
+#           THE BUG-FREE MIGHTY BEAST
+
+
 
                     
 

@@ -1,6 +1,7 @@
 import dill
 import json
 import copy
+import uuid
 
 from nebula.providers.persistor.persistor_factory import PersistorFactory
 from nebula.providers.serializer.serializer_factory import SerializerFactory
@@ -75,13 +76,27 @@ class Store():
         # serialzie pipeline
         serializer = self.serializer_factory.get_serializer(feature.serializer)
         dumps = serializer.encode(pipeline, **kwargs)
+        # make sure the initial uuid is always different,
+        # it will make sure the uniqueness checking is accurate.
+        feature.uid = feature.uid = str(uuid.uuid4())
+        if self.meta_manager.is_unique(feature):
+            try:
+                # persist the serialized pipeline
+                persistor = self.persistor_factory.get_persistor(feature.persistor)
+                persistor.write(feature, dumps, **kwargs)
+            except Exception as e:
+                print('> the persistor write operation failed.', e)
+                raise
 
-        # persist the serialized pipeline
-        persistor = self.persistor_factory.get_persistor(feature.persistor)
-        persistor.write(feature, dumps, **kwargs)
-
-        # add new registered feature into store catelog
-        self.meta_manager.register(feature)
+            try:
+                # add new registered feature into store catalog
+                self.meta_manager.register(feature)
+            except Exception as e:
+                print('> the meta manager registration operation failed.', e)
+                persistor.delete(feature.uid)
+                raise
+        else:
+            print("> The feature name '%s' is not unique in namespace: %s" % (feature.name, feature.namespace))
 
     """
         list all matched features by filter function in given matched namespace
@@ -106,14 +121,13 @@ class Store():
         show store info
     """
     def info(self, **kwargs):
-        print("== %s Information ==" % (self.config['store_name']) )
+        print("== %s Information ==" % (self.config['store_name']))
         print("- Meta Data Manager: %s" % (self.config['meta_manager']))
-        print("- Supported Meta Data managers: ", self.meta_manager_factory.info())
-        print("- Supported Persistors: ", self.persistor_factory.info())
-        print("- Supported Serializers: ", self.serializer_factory.info())
-        print("- Supported Cache Layers: ", self.cache_layer_factory.info())
-        print("- Supported Output Render Layers: ", self.output_render_factory.info())
-        print("- Supported Dataframe Operations: ", DataframeProcessorFactory.info())
+        print("- Persistor: %s" % (self.config['default_persistor']))
+        print("- Serializers: %s" % (self.config['default_serializer']))
+        print("- Output Render: %s" % (self.config['output_render']))
+        print("- Cache Layer: %s" % (self.config['default_cache_layer']))
+    
 
 
     """
@@ -130,14 +144,29 @@ class Store():
     " delete the features from the store
     " 
     """
-    def delete(self, ufd, verbose=True, **kwargs):
+    def delete(self, ufd, hard=False, verbose=True, **kwargs):
         """
         @param::ufd: the {uid:feature} dictioary
         @param::verbose: toggle the log information output
         @param::kwargs: the keyworded parameters
         return the dataframe built from feature list
         """
-        self.meta_manager.delete(ufd, verbose)
+        # perform hard/soft deletion
+        if hard:
+            processed = {}
+            for u, f in ufd.items():
+                try:
+                    persistor = self.persistor_factory.get_persistor(f.persistor)
+                    persistor.delete(f.uid)
+                    processed[u] = f
+                except Exception as e:
+                    print('> the hard deletion failed.', e)
+                    self.meta_manager.delete(processed,verbose)
+                    raise
+            self.meta_manager.delete(processed, verbose)
+        else:
+            self.meta_manager.delete(ufd, verbose)
+
     
     """
     "
