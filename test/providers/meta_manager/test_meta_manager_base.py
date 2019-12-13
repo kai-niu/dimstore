@@ -30,3 +30,4 @@ class TestMetaManagerBase():
         with pytest.raises(NotImplementedError):
             base_class.remove_feature(None)
 
+    
