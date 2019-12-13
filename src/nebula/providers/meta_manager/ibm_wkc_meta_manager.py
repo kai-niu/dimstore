@@ -167,6 +167,9 @@ class WastonKnowledgeCatalogMetaManager(MetaManagerBase):
             # update feature
             if uid in catalog:
                 catalog[uid] = feature
+                # may cause problem when manager and feature assets are in
+                # different catalogs
+                self.__update_feature_asset__(feature)
         # save the last catalog back into storage
         if isinstance(catalog, dict) and len(catalog) > 0:
             self.__save_catalog__(catalog, namespace=namespace)
@@ -409,6 +412,27 @@ class WastonKnowledgeCatalogMetaManager(MetaManagerBase):
         # create feature
         response = self.client.create_asset(json.dumps(asset))
         return response['metadata']['asset_id']
+
+    """
+    "
+    " update feature asset metadata
+    "
+    """
+    def __update_feature_asset__(self, feature):
+        """
+        @param FeatureMetaData::feature: the feature meta data object.
+        return none
+        """
+        # define update operations
+        ops =  [
+            { "op": "replace", "path": "/metadata/tags", "value": list(feature.tags)},
+            { "op": "replace", "path": "/metadata/description", "value": feature.comment},
+        ]
+        # update feature asset metadata
+        try:
+            self.client.update_asset(feature.uid,json.dumps(ops))
+        except Exception as e:
+            print('> update feature asset metadata failed.', e)
 
     """
     "

@@ -37,7 +37,7 @@ class WastonKnowlegeCatalogStoragePersistor(PersistorBase):
         metadata = {    
             "metadata": {
                     "name": feature.name,
-                    "description": feature.comments,
+                    "description": feature.comment,
                     "tags": list(feature.tags),
                     "asset_type": "feature_asset",
                     "origin_country": "us",
