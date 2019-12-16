@@ -30,7 +30,7 @@ class CleanCommand(Command):
 
 setup(
     name='DimStore',
-    version='0.0.11',
+    version='0.0.12',
     license='BSD 2-Clause License',
     author='Kai Niu',
     author_email='kai.niu@ibm.com',
@@ -68,7 +68,8 @@ setup(
         'botocore ~= 1.12.201', 
         'ibm-cos-sdk ~= 2.5.2',
         'ibm-cos-sdk-core ~= 2.5.2',
-        'ibm-cos-sdk-s3transfer ~= 2.5.2'
+        'ibm-cos-sdk-s3transfer ~= 2.5.2',
+        'pyspark ~= 2.4.0'
     ],
     extras_require={
         'dev' : [''],
