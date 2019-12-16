@@ -2,3 +2,5 @@
 !/.gitignore
 !/.travis.yml
 /example/*
+/dist/*
+/build/*
