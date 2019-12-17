@@ -22,7 +22,7 @@ pip install DimStore
 # Configuration
 The package can work with different backend layers based on the configuration file in json format. The configuration file contains five differnt sections:
 
-1. The general section contains the general store attributes:  
+1. The general attributes:  
 e.g.
 ```javascript
  {
@@ -35,34 +35,34 @@ e.g.
  }
 ```
 
-2. The meta manager section configure all the providers made available to manage feature meta data. The default meta_manager has to be chosen from the entities defined in this section. The supported meta data managers are:
+2. The meta manager section configure the providers made available to manage feature meta data. The default meta_manager has to be chosen from the entities defined in this section. The supported meta data managers are:
 * Flat File
 * IBM Object Storage
 * IBM Kownledge Catalog  
 e.g. 
 ```javascript
-{
-    "flat_file_meta_manager":{
-            "root_dir": "/Users/kai/repository/nebula/example/storage",
-            "folder_name":"catalog",
-            "file_name":"catalog.nbl"
-    },
-    "ibm_object_storage_meta_manager":{
-        "file_uid": "foo-bar-never-going-to-dup-uid-here",
-        "iam_service_id": "iam-ServiceId-1915183a-47f4-4c9f-81c3-************",
-        "ibm_api_key_id": "4r8w7hJilAQyo4VrdBqUnhbXA5qfratq**********_",
-        "endpoint":"https://s3.us.cloud-object-storage.appdomain.cloud",
-        "ibm_auth_endpoint": "https://iam.bluemix.net/oidc/token",
-        "bucket": "foobar-bucket"
-    },
-    "ibm_wkc_meta_manager":{
-        "asset_name": "metadata_manager_repository",
-        "catalog_name": "DimStore",
-        "uid": "dimstore",
-        "token": "*******",
-        "host": "dse-cp4d25-cluster2.cpolab.ibm.com"
-    }
-}
+   "meta_manager_providers": {
+       "flat_file_meta_manager":{
+               "root_dir": "/Users/kai/repository/nebula/example/storage",
+               "folder_name":"catalog",
+               "file_name":"catalog.nbl"
+       },
+       "ibm_object_storage_meta_manager":{
+           "file_uid": "foo-bar-never-going-to-dup-uid-here",
+           "iam_service_id": "iam-ServiceId-1915183a-47f4-4c9f-81c3-************",
+           "ibm_api_key_id": "4r8w7hJilAQyo4VrdBqUnhbXA5qfratq**********_",
+           "endpoint":"https://s3.us.cloud-object-storage.appdomain.cloud",
+           "ibm_auth_endpoint": "https://iam.bluemix.net/oidc/token",
+           "bucket": "foobar-bucket"
+       },
+       "ibm_wkc_meta_manager":{
+           "asset_name": "metadata_manager_repository",
+           "catalog_name": "DimStore",
+           "uid": "dimstore",
+           "token": "*******",
+           "host": "dse-cp4d25-cluster2.cpolab.ibm.com"
+       }
+   }
 ```
 3. The persistor section confgure all the persistor providers made avaiable to persist data to designate destinations. The default persistor has to be chosen from the entities defined in this section. The supported providers are:
 * Flat file
@@ -70,7 +70,7 @@ e.g.
 * IBM Waston Knowlege Catalog  
 e.g.  
 ```javascript
-"persistor_providers":{
+   "persistor_providers":{
         "flat_file_storage":{
             "root_dir": "/Users/kai/repository/nebula/example/storage",
             "folder_name":"features"
@@ -109,7 +109,7 @@ e.g.
 ```
 # Examples
 
-1. Create the feature store object. 
+#### 1. Create the feature store object. 
 The configuration file can be refered as local or remote file:  
 ```python
    remote_config = 'https://s3.us.cloud-object-storage.appdomain.cloud/foobar-bucket/store_config.json'
@@ -121,7 +121,7 @@ The configuration file can be refered as local or remote file:
 
 <img src="docs/diagrams/fig_1.png" width="350" />  
 
-2. Check store namespace:
+#### 2. Check store namespace:
 The feature store namespace information can provide good summary of available features.
 ```python
    store.list_namespaces()
@@ -130,7 +130,7 @@ The feature store namespace information can provide good summary of available fe
 
 <img src="docs/diagrams/fig_2.png" width="350" />   
 
-3. "Shopping" features:
+#### 3. "Shopping" features:
 There are multiple ways to check out features:
 * by namespace
 * by feature name
@@ -153,7 +153,7 @@ After the set of feature is checked out from the store, build the dataset is sim
 ```
 * example:  
 
-<img src="docs/diagrams/fig_4.png" width="450" />   
+<img src="docs/diagrams/fig_4.png" width="650" />   
 
 
 One of the advantage to store features as pipeline is to customzie the features using parameters:
@@ -167,6 +167,59 @@ One of the advantage to store features as pipeline is to customzie the features 
 * example:  
 
 
-<img src="docs/diagrams/fig_5.png" width="550" />   
+<img src="docs/diagrams/fig_5.png" width="650" />   
+
+#### 4. Create Features
+The feature creation process require minimal efforts on top of the normal feature extraction process. The easy way is to think of feature as a simple function that implement a certain contract:
+  
+1. return a dataframe contain 'index' column and one or more feature(s) column(s).
+2. function contains all logics required to produce the feature.  
+  
+The following example defined a simple feature by scaling the input data. It contains an independent pipeline from connection to datasource, applying logics and returning a feature dataframe. The feature extraction pipeline can follow any arbitrary list of operations as long as the computation enviroment supports.  
+```python
+    def foo_feature(col='X1', alpha=1.0):
+        # read in data
+        df = pd.read_csv('/project_data/data_asset/foo.csv')
+        # scale the target column by scale coefficient and
+        # return the feature dataframe
+        return df.loc[:,['id',col]]*alpha
+ ```
+After define the feature pipeline, few meta data need to be provided so others in the team can consume the feature with minimum amount of efforts. The list of meta data support in default:
+* name: the name of the feature.
+* index: the index column of the returned feature dataframe.
+* namespace: the namespace of the feature.
+* author: as the name implies.
+* tags: a set of tages that help organize the features.
+* params: a dictionary of parameters
+* output: the type of output dataframe ['pyspark'|'pandas']
+* comment: as the name implies.
+* persistor: the persistor provider associate with this feature. 'None' value implies the default persistor.
+* serializer: the serializer provider associate with this feature. 'None' value implies the default serializer.  
+The last step of register a feature is to call the register function:  
+
+```python
+   store.register(metadata, foo_feature)
+```
+
+* example:  
+<img src="docs/diagrams/fig_6.png" width="750" />  
+
+#### 5. Update Feature Store
+The feature store can also be updated by the steps following:
+1. select the group of features into a set. It is similar to checking out features.
+2. call 'update' or 'delete' function on the feature set.
+```python
+   # delete all features in the set, 
+   # the hard delete will also delete feature from the persist layer.
+   foo.delete(hard=[true|false])
+   
+   # update the features in the set
+   # the update can be specified as key-value pair or lambda function
+   foo.update( key_values = {'meta attribute: value', 'name':'kai niu', ...}, # the kvp of meta attributes
+               updater = lambda feature: return feature, # the lambda updater function that take feature as input and output
+               strict_mode = [true|false], # toggle strict mode, in default it is true.
+               verbose = [true|false] # toggle verbose mode, in default it is false.
+               )
+```
 
  
