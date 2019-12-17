@@ -11,7 +11,7 @@ def base_class(request):
     return PersistorBase()
 
 
-class TestCacheLayerBase():
+class TestPersistorBase():
 
     def test_put_method_implementation_exception(self, base_class):
         with pytest.raises(NotImplementedError):

@@ -11,7 +11,7 @@ def base_class(request):
     return SerializerBase()
 
 
-class TestCacheLayerBase():
+class TestSerializerBase():
 
     def test_put_method_implementation_exception(self, base_class):
         with pytest.raises(NotImplementedError):

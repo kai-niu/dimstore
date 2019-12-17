@@ -34,27 +34,25 @@ def mock_config(request):
 
 
 
-class TestIBMObjectStoragePersistorBase():
+class TestFlatFilePersistor():
     def test_init_parse_config(self, mock_config):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
-            # arrange
-            config = mock_config
-            mock.patch.object(mocked_boto,'client', return_value=None)  
-            # act
-            obj = FlatFilePersistor(config)
-           
-            # assert
-            assert obj.path == '/foobar/catalog'
+        # arrange
+        config = mock_config
+        # act
+        obj = FlatFilePersistor(config)
+        
+        # assert
+        assert obj.path == '/foobar/catalog'
 
     def test_write_method_call_put_write_binary_method_once(self, mock_config, mock_feature_meta):
-        with mock.patch('nebula.utility.file_functions.write_binary_file') as mocked_write_fn:
+        with mock.patch('nebula.providers.persistor.flatfile_persistor.write_binary_file') as mocked_write_fn:
             # arrange
             config = mock_config
-            mock_persistor = FlatFilePersistor(config)
             mocked_write_fn.return_value = None
+            mock_persistor = FlatFilePersistor(config)
             # act
             mock_persistor.write(mock_feature_meta, None) 
             # assert
-            mocked_write_fn.write_binary_file.assert_called_once()
+            mocked_write_fn.assert_called_once()
     
    

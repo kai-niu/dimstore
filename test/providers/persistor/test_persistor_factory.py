@@ -41,7 +41,7 @@ def mock_config(request):
             }
     return config
 
-class TestIBMObjectStoragePersistorFactory():
+class TestPersistorFactory():
     def test_init_parse_config(self, mock_config):
         # arrange
         pass
