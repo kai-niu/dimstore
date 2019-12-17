@@ -3,3 +3,5 @@ pickleshare >= 0.7.5
 pytest >= 4.6.2
 pytest-cov >= 2.6.1
 ipython ~= 7.3.0
+pandas ~= 0.24.1
+pyspark ~= 2.4.0
