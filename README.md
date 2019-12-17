@@ -113,7 +113,7 @@ The package can work with different backend layers based on the configuration fi
 
 5. The serializer and output render sections configure the providers made available to serialize and render output. The supported providers are:
 
-   - Serilizer: dill
+   - Serializer: dill
    - Output Renderer: Html render   
 
 ##### example:  
