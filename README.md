@@ -1,119 +1,172 @@
 # Nebula
-The Nebula is a lightweight feature store designed to streamline DSE working pipeline by sharing high-quality features among team members and enable the minimum amount of effort to reuse the features. It designs to be extensible and versatile to accommodate different team set up on different computation platform, including Waston Studio Local.
+The Nebula is a lightweight feature store designed to streamline the DSE working pipeline by sharing high-quality features among team members and enable the minimum amount of effort to reuse the features. It designs to be extensible and versatile to accommodate different teams set up on different computation platform.
 
 [![Build Status](https://travis.ibm.com/Kai-Niu/nebula.svg?token=uqbL1pAUo2sCHeqp1yJV&branch=master)](https://travis.ibm.com/Kai-Niu/nebula)
 
 # Design
 <img style="float: center;" src="docs/diagrams/nebula_design_diagram.jpg">
-The Nebula is built for sharing features extracted using pySpark, but works for other framwork as well, e.g., pandas. The core idea is to share the feature extraction logic instead of actual dataset. The provider pattern enables the Nebula to work with different backend persistent layer such as MongoDB, Hive, etc. Cache Layer is used to address the performance issue when the actual feature extraction operation is computationally expensive.
+The Nebula is built for sharing features in pandas or pyspark dataframe, and it could be extended to any arbitrary dataset format. The core idea is to share the feature extraction logic instead of the actual dataset. The provider pattern enables the Nebula to work with different backend layers such as object storage, IBM knowledge catalog, etc. 
 
 # Install
+In general, use pip to install the package.
 ```
-pip install Nebula  #package is not published yet
+pip install DimStore 
+# some folk used the name 'nebula' already...
 ```
+* Waston Studio Cloud Pak For Data 2.5
+1. Open Jupyter Lab IDE.
+2. Open Terminal window.
+3. Use Pip command to install the package.
+
 
 # Configuration
-* Step 1, Use the utility function generate the store configuration json file.
-```python
- from nebula import ConfigBuilder
- config = ConfigBuilder()
- config.build('./', 'foo_config')
+The package can work with different backend layers based on the configuration file in json format. The configuration file contains five differnt sections:
+
+1. The general section contains the general store attributes:  
+e.g.
+```javascript
+ {
+    "store_name": "Kai's Feature Store",       # the name of the store
+    "meta_manager": "ibm_wkc_meta_manager",    # the default meta manager layer
+    "output_render": "html_render",            # the default output render layer
+    "default_persistor": "ibm_wkc_storage",    # the default persist layer
+    "default_serializer": "dill_serializer",   # the default serialization layer
+    "default_cache_layer": "none",             # the default cache layer
+ }
 ```
 
-* Step 2, Edit the store_config.json based on the environment. The following is an example of the generated configuration file:
-
+2. The meta manager section configure all the providers made available to manage feature meta data. The default meta_manager has to be chosen from the entities defined in this section. The supported meta data managers are:
+* Flat File
+* IBM Object Storage
+* IBM Kownledge Catalog  
+e.g. 
 ```javascript
 {
-    "store_name": "Kai's Feature Store",
-    "meta_manager": "default",
-    "meta_manager_providers": {
-        "default":{
+    "flat_file_meta_manager":{
             "root_dir": "/Users/kai/repository/nebula/example/storage",
             "folder_name":"catalog",
             "file_name":"catalog.nbl"
-        }
     },
-    "persistor_providers":{
-        "default":{
-            "root_dir": "/Users/kai/repository/nebula/example/storage",
-            "folder_name":"features"
-        }
+    "ibm_object_storage_meta_manager":{
+        "file_uid": "foo-bar-never-going-to-dup-uid-here",
+        "iam_service_id": "iam-ServiceId-1915183a-47f4-4c9f-81c3-************",
+        "ibm_api_key_id": "4r8w7hJilAQyo4VrdBqUnhbXA5qfratq**********_",
+        "endpoint":"https://s3.us.cloud-object-storage.appdomain.cloud",
+        "ibm_auth_endpoint": "https://iam.bluemix.net/oidc/token",
+        "bucket": "foobar-bucket"
     },
-    "serializer_providers":{
-        "default":{
-        }
+    "ibm_wkc_meta_manager":{
+        "asset_name": "metadata_manager_repository",
+        "catalog_name": "DimStore",
+        "uid": "dimstore",
+        "token": "*******",
+        "host": "dse-cp4d25-cluster2.cpolab.ibm.com"
     }
 }
 ```
+3. The persistor section confgure all the persistor providers made avaiable to persist data to designate destinations. The default persistor has to be chosen from the entities defined in this section. The supported providers are:
+* Flat file
+* IBM Object Storage
+* IBM Waston Knowlege Catalog  
+e.g.  
+```javascript
+"persistor_providers":{
+        "flat_file_storage":{
+            "root_dir": "/Users/kai/repository/nebula/example/storage",
+            "folder_name":"features"
+        },
+        "ibm_object_storage":{
+            "iam_service_id": "iam-ServiceId-1915183a-47f4-4c9f-81c3-************",
+            "ibm_api_key_id": "4r8w7hJilAQyo4VrdBqUnhbXA5qfratq***********_",
+            "endpoint":"https://s3.us.cloud-object-storage.appdomain.cloud",
+            "ibm_auth_endpoint": "https://iam.bluemix.net/oidc/token",
+            "bucket": "foobar-bucket"
+        },
+        "ibm_wkc_storage":{
+            "catalog_name": "DimStore",
+            "uid": "dimstore",
+            "token": "******",
+            "host": "dse-cp4d25-cluster2.cpolab.ibm.com"
+        }
+    }
+```
+4. The cache layer is not suppored yet, but the configuration design will be similar as meta data manager and persistor proviers.
 
+5. The serializer and output render sections configure the providers made aviable to serialize and render output. The supported providers are:
+* Serilizer: dill
+* Output Renderer: Html render   
+e.g.
+```javascript
+    "serializer_providers":{
+        "dill_serializer":{
+        }
+    },
+    "output_render_providers":{
+        "html_render":{
+            "table_style":"border: 1px solid black"
+        }
+    }
+```
 # Examples
 
-1. Create the feature store object
-
+1. Create the feature store object. 
+The configuration file can be refered as local or remote file:  
 ```python
- from nebula import Store
- from nebula import FeatureMeta
- 
- # create feature store
- store = Store('store_config.json')
- 
- # show store info
- store.info()
+   remote_config = 'https://s3.us.cloud-object-storage.appdomain.cloud/foobar-bucket/store_config.json'
+   local_config = 'file://store_config.json'
+   store1 = Store(local_config)
+   store2 = Store(remote_config)
 ```
-```
- # output
- == Kai's Feature Store Information ==
-- Meta Data Manager: default
-- Supported Meta Data managers:  ['flat file meta manager (default)']
-- Supported Persistors:  ['flat file persistor (default)']
-- Supported Serializers:  ['dill Serializer (default)']
-- Supported Cache Layers:  ['None']
-- Features Available:  2
-```
+* example:  
 
-2. Register feature into the feature store
+<img src="docs/diagrams/fig_1.png" width="350" />  
 
-``` python
- # init feature meta data
- feature_meta = FeatureMeta('foo_feature')
- feature_meta.author = 'Kai Niu'
- feature_meta.params = {'context':'pySpark Context, required','alpha':'the ceof of foo transform,optional'}
- feature_meta.comment = 'Dummy feature for demostration purpose only.'
+2. Check store namespace:
+The feature store namespace information can provide good summary of available features.
+```python
+   store.list_namespaces()
+```
+* example:  
+
+<img src="docs/diagrams/fig_2.png" width="350" />   
+
+3. "Shopping" features:
+There are multiple ways to check out features:
+* by namespace
+* by feature name
+* by filter function
+```python
+   foo = store.features(namespace='foo.bar') # the namespace of features
+              .select(
+                   keep=['foo1','foo2',...],  # list of features to keep in the specified namespace
+                   exclude=['bar1','bar2',...],  # list of features to exclude from the specified namespace
+                   filter=filter_function   # any arbitrary function: lambda feature: return bool
+               )
+```
+* example:  
+
+<img src="docs/diagrams/fig_3.png" width="350" />   
+
+After the set of feature is checked out from the store, build the dataset is simple:
+```python
+   foo.build(dataframe='[pyspark|pandas]') # pyspark dataframe is default output dataframe
+```
+* example:  
+
+<img src="docs/diagrams/fig_4.png" width="450" />   
+
+
+One of the advantage to store features as pipeline is to customzie the features using parameters:
+```python
+   param_list = {
+                'fully qualified feature name': params,
+                'dse.client.abc.project1.zoo_scaler': {'alpha':-100}
+             }
+   df2 = foo.build(dataframe='pandas',**param_list) # pass the param list 
+```
+* example:  
+
+
+<img src="docs/diagrams/fig_5.png" width="550" />   
+
  
- # register foo feature extraction logics
- store.register(feature_meta, foo_feature)
- 
- # show features registered in store
- store.catalog()
-```
-```
- # output
- == Feature Catalog ==
- foo_scaler 	 e1c95611-cf7d-4097-9c41-4d564f8b0483 	 04, Jun 2019 	 Kai Niu
- foo_scaler 	 4c4c7b9d-aafe-494f-860e-b136db4615f7 	 05, Jun 2019 	 Kai Niu
-```
-
-3. Checkout feature from the feature store
-
-``` python
- # init uid and params
- params = {'context':sqlcontext,'alpha':2.0}
- uid = 'e1c95611-cf7d-4097-9c41-4d564f8b0483'
- 
- # check out feature by uid
- p = store.checkout(uid, params)
- p.show(3)
-```
-```
-# output
-+------------------+------------------+------------------+------------------+------------------+
-|                X1|                X2|                X3|                X4|             Label|
-+------------------+------------------+------------------+------------------+------------------+
-|0.6251974793973963|0.2179858165402263|0.9961564637159082|0.9423549790353055|  5.05700613142282|
-|0.9900334629744841|0.8166846267145481|0.6039442937781169|0.4705352882294497|6.9252293085928445|
-|0.3186070198700508|0.5352212239478372|0.3459134832875863|0.6050918418285824| 4.075017743935206|
-+------------------+------------------+------------------+------------------+------------------+
-```
-
-# Version
-The package is still under concept-proofing phase. The plan is supported flat file and MongoDB as the persistent layers and sparks parquet as the cache layer in the release of the alpha version. As of now, the library only supports flat file as a persistent layer and no cache layer support.
