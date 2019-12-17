@@ -31,7 +31,7 @@ pip install DimStore
 
 
 # Configuration
-The package can work with different backend layers based on the configuration file in json format. The configuration file contains five differnt sections:
+The package can work with different backend layers based on the configuration file in JSON format. The configuration file contains five different sections:
 
 1. The general attributes:  
 
@@ -48,7 +48,7 @@ The package can work with different backend layers based on the configuration fi
 }
 ```
 
-2. The meta manager section configure the providers made available to manage feature meta data. The default meta_manager has to be chosen from the entities defined in this section. The supported meta data managers are:
+2. The meta manager section configures the providers made available to manage feature metadata. The default meta_manager has to be chosen from the entities defined in this section. The supported metadata managers are:
 
    - Flat File
    - IBM Object Storage
@@ -80,7 +80,7 @@ The package can work with different backend layers based on the configuration fi
     }
 }
 ```
-3. The persistor section confgure all the persistor providers made avaiable to persist data to designate destinations. The default persistor has to be chosen from the entities defined in this section. The supported providers are:
+3. The persistor section configures all the persistor providers made available to persist data to designated destinations. The default persistor has to be chosen from the entities defined in this section. The supported providers are:
 
    - Flat file
    - IBM Object Storage
@@ -109,9 +109,9 @@ The package can work with different backend layers based on the configuration fi
      }
 }
 ```
-4. The cache layer is not suppored yet, but the configuration design will be similar as meta data manager and persistor proviers.
+4. The cache layer is not supported yet, but the configuration design will be similar to the metadata manager and persistor providers.
 
-5. The serializer and output render sections configure the providers made aviable to serialize and render output. The supported providers are:
+5. The serializer and output render sections configure the providers made available to serialize and render output. The supported providers are:
 
    - Serilizer: dill
    - Output Renderer: Html render   
@@ -133,7 +133,7 @@ The package can work with different backend layers based on the configuration fi
 # Tutorial
 
 #### 1. Create the feature store object. 
-The configuration file can be refered as local or remote file:  
+The configuration file can be referred to as a local or remote file:   
 ```python
 remote_config = 'https://s3.us.cloud-object-storage.appdomain.cloud/foobar-bucket/store_config.json'
 local_config = 'file://store_config.json'
@@ -146,7 +146,7 @@ store2 = Store(remote_config)
 <img src="docs/diagrams/fig_1.png" width="350" />  
 
 #### 2. Check store namespace:
-The feature store namespace information can provide good summary of available features.
+The aggregated feature counts of each namespace can provide a good summary of available features.
 ```python
 store.list_namespaces()
 ```
@@ -182,7 +182,7 @@ foo.build(dataframe='[pyspark|pandas]') # pyspark dataframe is default output da
 <img src="docs/diagrams/fig_4.png" width="650" />   
 
 
-One of the advantage to store features as pipeline is to customzie the features using parameters:
+One of the advantages to storing features as pipelines is to check out feature with customized parameters:
 ```python
 param_list = {
              'fully qualified feature name': params,
@@ -196,12 +196,12 @@ df2 = foo.build(dataframe='pandas',**param_list) # pass the param list
 <img src="docs/diagrams/fig_5.png" width="650" />   
 
 #### 4. Create Features
-The feature creation process require minimal efforts on top of the normal feature extraction process. The easy way is to think of feature as a simple function that implement a certain contract:
+The feature creation process requires minimal efforts on top of the normal feature extraction process. The easy way is to think of feature as a simple function that implements a certain contract (conventions):
   
-1. return a dataframe contain 'index' column and one or more feature(s) column(s).
+1. return a data frame contain 'index' column and one or more feature(s) column(s).
 2. function contains all logics required to produce the feature.  
   
-The following example defined a simple feature by scaling the input data. It contains an independent pipeline from connection to datasource, applying logics and returning a feature dataframe. The feature extraction pipeline can follow any arbitrary list of operations as long as the computation enviroment supports.  
+The following example defined a simple feature by scaling the source data. It contains an independent pipeline from connection to the data source, applying the logics, and returning a feature data frame. The feature extraction pipeline can follow any arbitrary list of operations as long as the computation environment supports. 
 
 ```python
 def foo_feature(col='X1', alpha=1.0):
@@ -212,7 +212,7 @@ def foo_feature(col='X1', alpha=1.0):
     return df.loc[:,['id',col]]*alpha
  ```
  
-After define the feature pipeline, few meta data need to be provided so others in the team can consume the feature with minimum amount of efforts. The list of meta data support in default:  
+After defining the feature pipeline, few metadata need to be provided so others in the team can consume the feature with a minimum amount of effort. The list of meta data support in default:  
 
 * name: the name of the feature.
 * index: the index column of the returned feature dataframe.
@@ -225,7 +225,7 @@ After define the feature pipeline, few meta data need to be provided so others i
 * persistor: the persistor provider associate with this feature. 'None' value implies the default persistor.
 * serializer: the serializer provider associate with this feature. 'None' value implies the default serializer.  
 
-The last step of register a feature is to call the register function:  
+The last step of registering a feature is to call the register function:  
 
 ```python
 store.register(metadata, foo_feature)
@@ -235,7 +235,7 @@ store.register(metadata, foo_feature)
 <img src="docs/diagrams/fig_6.png" width="750" />  
 
 #### 5. Update Feature Store
-The feature store can also be updated by the steps following:
+The features in the feature store can also be updated by the steps as following:
 
 1. select the group of features into a set. It is similar to checking out features.
 2. call 'update' or 'delete' function on the feature set.
@@ -260,5 +260,6 @@ The contribution comes in many ways:
 * Unit Testing: since the feature store is a piece of software, therefore it has bugs, sloppy codes. The current code coverage is sloppy (about 45% percentage and the target is >= 85%), so help on writing unit tests is very much needed. 
 * Feedbacks: try out the package in your DS pipeline and see how it works.
 * New Features: add new features to the package. e,g., add Mongo DB as a new persist layer.
+* Issues: The issues are these specific tasks need the help, so feel free to fork the repo and start working on them.
 
  
