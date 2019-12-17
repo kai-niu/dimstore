@@ -13,10 +13,11 @@ In general, use pip to install the package.
 pip install DimStore 
 # some folk used the name 'nebula' already...
 ```
-* Waston Studio Cloud Pak For Data 2.5
-1. Open Jupyter Lab IDE.
-2. Open Terminal window.
-3. Use Pip command to install the package.
+* Waston Studio Cloud Pak For Data 2.5:
+
+   - Open Jupyter Lab IDE.
+   - Open Terminal window.
+   - Use Pip command to install the package.
 
 
 # Configuration
@@ -38,9 +39,10 @@ The package can work with different backend layers based on the configuration fi
 ```
 
 2. The meta manager section configure the providers made available to manage feature meta data. The default meta_manager has to be chosen from the entities defined in this section. The supported meta data managers are:
-* Flat File
-* IBM Object Storage
-* IBM Kownledge Catalog  
+
+   - Flat File
+   - IBM Object Storage
+   - IBM Kownledge Catalog  
 
 ##### example:  
 
@@ -69,9 +71,10 @@ The package can work with different backend layers based on the configuration fi
 }
 ```
 3. The persistor section confgure all the persistor providers made avaiable to persist data to designate destinations. The default persistor has to be chosen from the entities defined in this section. The supported providers are:
-* Flat file
-* IBM Object Storage
-* IBM Waston Knowlege Catalog  
+
+   - Flat file
+   - IBM Object Storage
+   - IBM Waston Knowlege Catalog  
 
 ##### example:  
 
@@ -99,8 +102,9 @@ The package can work with different backend layers based on the configuration fi
 4. The cache layer is not suppored yet, but the configuration design will be similar as meta data manager and persistor proviers.
 
 5. The serializer and output render sections configure the providers made aviable to serialize and render output. The supported providers are:
-* Serilizer: dill
-* Output Renderer: Html render   
+
+   - Serilizer: dill
+   - Output Renderer: Html render   
 
 ##### example:  
 
@@ -143,9 +147,9 @@ store.list_namespaces()
 
 #### 3. "Shopping" features:
 There are multiple ways to check out features:
-* by namespace
-* by feature name
-* by filter function
+ - by namespace
+ - by feature name
+ - by filter function
 ```python
 foo = store.features(namespace='foo.bar') # the namespace of features
            .select(
@@ -222,20 +226,22 @@ store.register(metadata, foo_feature)
 
 #### 5. Update Feature Store
 The feature store can also be updated by the steps following:
+
 1. select the group of features into a set. It is similar to checking out features.
 2. call 'update' or 'delete' function on the feature set.
+
 ```python
-   # delete all features in the set, 
-   # the hard delete will also delete feature from the persist layer.
-   foo.delete(hard=[true|false])
-   
-   # update the features in the set
-   # the update can be specified as key-value pair or lambda function
-   foo.update( key_values = {'meta attribute: value', 'name':'kai niu', ...}, # the kvp of meta attributes
-               updater = lambda feature: return feature, # the lambda updater function that take feature as input and output
-               strict_mode = [true|false], # toggle strict mode, in default it is true.
-               verbose = [true|false] # toggle verbose mode, in default it is false.
-               )
+# delete all features in the set, 
+# the hard delete will also delete feature from the persist layer.
+foo.delete(hard=[true|false])
+
+# update the features in the set
+# the update can be specified as key-value pair or lambda function
+foo.update( key_values = {'meta attribute: value', 'name':'kai niu', ...}, # the kvp of meta attributes
+            updater = lambda feature: return feature, # the lambda updater function that take feature as input and output
+            strict_mode = [true|false], # toggle strict mode, in default it is true.
+            verbose = [true|false] # toggle verbose mode, in default it is false.
+            )
 ```
 
  
