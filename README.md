@@ -4,8 +4,10 @@ The Nebula is a lightweight feature store designed to streamline the DSE working
 [![Build Status](https://travis.ibm.com/Kai-Niu/nebula.svg?token=uqbL1pAUo2sCHeqp1yJV&branch=master)](https://travis.ibm.com/Kai-Niu/nebula)
 
 # Design
-<img style="float: center;" src="docs/diagrams/nebula_design_diagram.jpg">
-##### Intro
+
+<img style="float: center;" src="docs/diagrams/nebula_design_diagram.jpg">  
+
+##### Intro 
 The Nebula is built for sharing features in pandas or pyspark dataframe, and it could be extended to any arbitrary dataset format. The core idea is to share the feature extraction logic(pipeline) instead of the actual dataset. The provider pattern enables the Nebula to work with different backend layers such as object storage, IBM knowledge catalog, etc. 
 
 ##### Extend by Providers
