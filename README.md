@@ -5,7 +5,15 @@ The Nebula is a lightweight feature store designed to streamline the DSE working
 
 # Design
 <img style="float: center;" src="docs/diagrams/nebula_design_diagram.jpg">
-The Nebula is built for sharing features in pandas or pyspark dataframe, and it could be extended to any arbitrary dataset format. The core idea is to share the feature extraction logic instead of the actual dataset. The provider pattern enables the Nebula to work with different backend layers such as object storage, IBM knowledge catalog, etc. 
+##### Intro
+The Nebula is built for sharing features in pandas or pyspark dataframe, and it could be extended to any arbitrary dataset format. The core idea is to share the feature extraction logic(pipeline) instead of the actual dataset. The provider pattern enables the Nebula to work with different backend layers such as object storage, IBM knowledge catalog, etc. 
+
+##### Extend by Providers
+The provider engineering pattern is used to extend the feature store and enable the deployment onto different infrastructures. A given function is abstract as a provider, and the Feature Store assumes no dependency on certain implementation. e.g., The feature store can work with multiple providers to persist data, and the specific logics each provider has to persist data is decoupled from the feature store. In this design, the feature store can extend itself without much change in its codebase. 
+
+##### Organizing by Namespace
+The design of namespace is to help to organize the features into a manageable hierarchy. In multiple teams and project environments, the data features produced from different projects become unmanageable quickly.  The proposed design is to organize the features into different namespaces. In each namespace, the features meta attributes such as the "tags", "name" and "comments" can help further filtering the features into a meaningful set. 
+
 
 # Install
 In general, use pip to install the package.
@@ -243,5 +251,12 @@ foo.update( key_values = {'meta attribute: value', 'name':'kai niu', ...}, # the
             verbose = [true|false] # toggle verbose mode, in default it is false.
             )
 ```
+
+# Contribute
+The contribution comes in many ways:
+* Documentation: the documentation of the repository, the tutorial of how to use the feature store.
+* Unit Testing: since the feature store is a piece of software, therefore it has bugs, sloppy codes. The current code coverage is sloppy (about 45% percentage and the target is >= 85%), so help on writing unit tests is very much needed. 
+* Feedbacks: try out the package in your DS pipeline and see how it works.
+* New Features: add new features to the package. e,g., add Mongo DB as a new persist layer.
 
  
