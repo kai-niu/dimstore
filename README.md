@@ -1,5 +1,5 @@
 # Nebula
-The Nebula is a lightweight feature store designed to streamline the DSE working pipeline by sharing high-quality features among team members and enable the minimum amount of effort to reuse the features. It designs to be extensible and versatile to accommodate different teams set up on different computation platform.
+Nebula is a lightweight __feature store__ designed to streamline the DSE working pipeline by sharing high-quality features among team members and enable feature reuse with minimal effort. It designs to be extensible and versatile to accommodate different teams set up on different computation platform.
 
 [![Build Status](https://travis.ibm.com/Kai-Niu/nebula.svg?token=uqbL1pAUo2sCHeqp1yJV&branch=master)](https://travis.ibm.com/Kai-Niu/nebula)
 
@@ -8,22 +8,22 @@ The Nebula is a lightweight feature store designed to streamline the DSE working
 <img style="float: center;" src="docs/diagrams/nebula_design_diagram.jpg">  
 
 ##### Intro 
-The Nebula is built for sharing features in pandas or pyspark dataframe, and it could be extended to any arbitrary dataset format. The core idea is to share the feature extraction logic(pipeline) instead of the actual dataset. The provider pattern enables the Nebula to work with different backend layers such as object storage, IBM knowledge catalog, etc. 
+Nebula is built for sharing features in pandas or pyspark dataframes; it could be extended to any arbitrary dataset format. The core idea is to share the feature extraction logic (_pipeline_) instead of the actual dataset. The _provider_ pattern enables Nebula to work with different back-end layers such as object storage, IBM knowledge catalog, etc. 
 
 ##### Extend by Providers
-The provider engineering pattern is used to extend the feature store and enable the deployment onto different infrastructures. A given function is abstract as a provider, and the Feature Store assumes no dependency on certain implementation. e.g., The feature store can work with multiple providers to persist data, and the specific logics each provider has to persist data is decoupled from the feature store. In this design, the feature store can extend itself without much change in its codebase. 
+The _provider_ engineering pattern is used to extend the feature store and enable the deployment onto different infrastructures. A given function is abstracted as a provider method, and the feature store has no dependency on a specific implementation. For example, the feature store can work with multiple providers to persist features, and the specific mechanisms each provider has to persist data are decoupled from the feature store. In this design, the feature store can be extended without much change to its codebase. 
 
-##### Organizing by Namespace
-The design of namespace is to help to organize the features into a manageable hierarchy. In multiple teams and project environments, the data features produced from different projects become unmanageable quickly.  The proposed design is to organize the features into different namespaces. In each namespace, the features meta attributes such as the "tags", "name" and "comments" can help further filtering the features into a meaningful set. 
+##### Organize by Namespace
+The design purpose of supporting namespaces is to help organize the features into a manageable hierarchy. In environments with multiple teams and projects, the features produced from different projects become unmanageable quickly. The proposed design is to organize the features into different namespaces. In each namespace, the features’ meta-attributes such as "tags", "name", and "comments" can help filter the features further into meaningful sets. 
 
 
 # Install
 In general, use pip to install the package.
 ```
 pip install DimStore 
-# some folk used the name 'nebula' already...
+# some folks used the name 'nebula' already...
 ```
-* Waston Studio Cloud Pak For Data 2.5:
+* Watson Studio Cloud Pak For Data 2.5:
 
    - Open Jupyter Lab IDE.
    - Open Terminal window.
@@ -31,7 +31,7 @@ pip install DimStore
 
 
 # Configuration
-The package can work with different backend layers based on the configuration file in JSON format. The configuration file contains five different sections:
+The package can work with different back-end layers based on a configuration file in JSON format. The configuration file contains five sections:
 
 1. The general attributes:  
 
@@ -41,18 +41,18 @@ The package can work with different backend layers based on the configuration fi
 {
    "store_name": "Kai's Feature Store",       # the name of the store
    "meta_manager": "ibm_wkc_meta_manager",    # the default meta manager layer
-   "output_render": "html_render",            # the default output render layer
-   "default_persistor": "ibm_wkc_storage",    # the default persist layer
+   "output_render": "html_render",            # the default output renderer layer
+   "default_persistor": "ibm_wkc_storage",    # the default persistence layer
    "default_serializer": "dill_serializer",   # the default serialization layer
    "default_cache_layer": "none",             # the default cache layer
 }
 ```
 
-2. The meta manager section configures the providers made available to manage feature metadata. The default meta_manager has to be chosen from the entities defined in this section. The supported metadata managers are:
+2. The `meta_manager` section configures the providers made available to manage feature metadata. The default `meta_manager` has to be chosen from the entities defined in this section. The supported metadata managers are:
 
    - Flat File
    - IBM Object Storage
-   - IBM Kownledge Catalog  
+   - IBM Knowledge Catalog  
 
 ##### example:  
 
@@ -80,7 +80,7 @@ The package can work with different backend layers based on the configuration fi
     }
 }
 ```
-3. The persistor section configures all the persistor providers made available to persist data to designated destinations. The default persistor has to be chosen from the entities defined in this section. The supported providers are:
+3. The `persistor` section configures all the providers made available to persist data to designated destinations. The default `persistor` has to be chosen from the entities defined in this section. The supported providers are:
 
    - Flat file
    - IBM Object Storage
@@ -111,10 +111,10 @@ The package can work with different backend layers based on the configuration fi
 ```
 4. The cache layer is not supported yet, but the configuration design will be similar to the metadata manager and persistor providers.
 
-5. The serializer and output render sections configure the providers made available to serialize and render output. The supported providers are:
+5. The `serializer` and `output_renderer` sections configure the providers made available to serialize and render output. The supported providers are:
 
    - Serializer: dill
-   - Output Renderer: Html render   
+   - Output Renderer: Html renderer   
 
 ##### example:  
 
@@ -262,4 +262,4 @@ The contribution comes in many ways:
 * New Features: add new features to the package. e,g., add Mongo DB as a new persist layer.
 * Issues: The issues are these specific tasks need the help, so feel free to fork the repo and start working on them.
 
- 
+
