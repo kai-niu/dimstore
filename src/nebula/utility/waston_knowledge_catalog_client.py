@@ -14,7 +14,7 @@ from io import StringIO
 "
 """
 
-class wkc_catalog_client():
+class WastonKnowledgeCatalogClient():
     
     def __init__(self, catalog_name, host, uid=None, pwd=None, token=None, verbose=True):
         """

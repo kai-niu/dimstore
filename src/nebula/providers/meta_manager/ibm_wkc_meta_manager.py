@@ -9,7 +9,7 @@ import base64
 import json
 from nebula.providers.meta_manager.meta_manager_base import MetaManagerBase
 from nebula.core.feature_set import FeatureSet
-from nebula.utility.ibm_wkc_client import wkc_catalog_client
+from nebula.utility.waston_knowledge_catalog_client import WastonKnowledgeCatalogClient
 
 
 class WastonKnowledgeCatalogMetaManager(MetaManagerBase):
@@ -322,7 +322,7 @@ class WastonKnowledgeCatalogMetaManager(MetaManagerBase):
         """
         client = None
         try:
-            client = wkc_catalog_client(self.catalog_name, self.host, uid=self.uid, pwd=self.pwd, verbose=False)
+            client = WastonKnowledgeCatalogClient(self.catalog_name, self.host, uid=self.uid, pwd=self.pwd, verbose=False)
         except Exception as e:
             print('> ibm wkc client initialization failed! \n', e)
             raise

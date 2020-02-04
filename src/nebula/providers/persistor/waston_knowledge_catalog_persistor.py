@@ -4,14 +4,14 @@
 "   docu: https://developer.ibm.com/api/view/watsondata-prod:watson-data:title-Watson_Data_API#Introduction
 """
 from nebula.providers.persistor.persistor_base import PersistorBase
-from nebula.utility.ibm_wkc_client import wkc_catalog_client
+from nebula.utility.waston_knowledge_catalog_client import WastonKnowledgeCatalogClient
 import json
 import base64
 import warnings
 
 warnings.filterwarnings("ignore")
 
-class WastonKnowlegeCatalogStoragePersistor(PersistorBase):
+class WastonKnowlegeCatalogPersistor(PersistorBase):
     def __init__(self, config):
         self.config = config
         self.catalog_name = config['catalog_name']
@@ -19,6 +19,9 @@ class WastonKnowlegeCatalogStoragePersistor(PersistorBase):
         self.pwd = config['token']
         self.host = config['host']
         self.client = self.__get_wkc_client__()
+
+        # create feature asset type in WKC
+        self.__create_feature_asset__()
 
 
     """
@@ -101,7 +104,7 @@ class WastonKnowlegeCatalogStoragePersistor(PersistorBase):
         """
         client = None
         try:
-            client = wkc_catalog_client(self.catalog_name, self.host, uid=self.uid, pwd=self.pwd, verbose=False)
+            client = WastonKnowledgeCatalogClient(self.catalog_name, self.host, uid=self.uid, pwd=self.pwd, verbose=False)
         except Exception as e:
             print('> ibm wkc client initialization failed! \n', e)
             raise
@@ -122,6 +125,48 @@ class WastonKnowlegeCatalogStoragePersistor(PersistorBase):
         return the orignal byte encoding produced from serialization layer
         """
         return base64.decodebytes(dumps.encode())
+
+    """
+    "
+    " create the feature_asset type in WKC if the it is not exist.
+    "
+    """
+    def __create_feature_asset__(self):
+        """
+        @param::none:
+        @return none
+        """
+        # check if the feature_asset type exist
+        if not self.__is_feature_asset_exist__():
+            # define feature type
+            asset_type = {
+                            "description": "DimStore feature type",
+                            "fields": [
+                            {
+                                "key": "namespace",
+                                "type": "string",
+                                "facet": False,
+                                "is_array": False,
+                                "search_path": "namespace",
+                                "is_searchable_across_types": False
+                            }
+                        ]
+                        }
+            self.client.create_asset_type('feature_asset', json.dumps(asset_type))
+
+    """
+    "
+    " check if the feature_asset type exist
+    "
+    """
+    def __is_feature_asset_exist__(self):
+        """
+        @param::none:
+        return boolean value indicates whether or not the feature_asset is created.
+        """
+        return 'feature_asset' in self.client.get_asset_types()
+            
+
 
 
 #         ┌─┐       ┌─┐
