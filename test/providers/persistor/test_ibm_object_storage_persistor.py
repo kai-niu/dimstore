@@ -36,7 +36,7 @@ def mock_config(request):
 
 
 
-class TestIBMObjectStoragePersistorBase():
+class TestIBMObjectStoragePersistor():
     def test_init_parse_config(self, mock_config):
         with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
             # arrange
