@@ -12,11 +12,13 @@ class MetaManagerFactory():
 
     # meta manager factory
     def get_meta_manager(self):
-        if self.config['meta_manager'] == 'flat_file_meta_manager':
-            return FlatFileMetaManager(self.config['meta_manager_providers']['flat_file_meta_manager'])
-        if self.config['meta_manager'] == 'ibm_wkc_meta_manager':
-            return WastonKnowledgeCatalogMetaManager(self.config['meta_manager_providers']['ibm_wkc_meta_manager'])
+        if self.config['meta_manager'] == 'flat_file':
+            return FlatFileMetaManager(self.config['meta_manager_providers']['flat_file'])
+        elif self.config['meta_manager'] == 'ibm_waston_knowledge_catalog':
+            return WastonKnowledgeCatalogMetaManager(self.config['meta_manager_providers']['ibm_waston_knowledge_catalog'])
+        else:
+            raise Exception('> meta manager provider: %s is not supported' % (self.config['meta_manager']))
 
     # return supported meta manager info
     def info(self):
-        return ['flat_file_meta_manager: flat file meta manager.','ibm_wkc_meta_manager: waston knowledge catalog meta manager.']
+        return ['flat_file: flat file meta manager.','ibm_waston_knowledge_catalog: waston knowledge catalog meta manager.']

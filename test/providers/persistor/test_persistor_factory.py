@@ -11,7 +11,7 @@ def mock_config(request):
     # mock the config object
     config = {
                 "store_name": "Kai's Feature Store",
-                "default_meta_manager": "flat_file_meta_manager",
+                "default_meta_manager": "flat_file",
                 "default_persistor": "ibm_object_storage",
                 "default_serializer": "dill_serializer",
                 "meta_manager_providers": {
@@ -22,7 +22,7 @@ def mock_config(request):
                     }
                 },
                 "persistor_providers":{
-                    "flat_file_storage":{
+                    "flat_file":{
                         "root_dir": "/foobar",
                         "folder_name":"features"
                     },
@@ -53,7 +53,7 @@ class TestPersistorFactory():
     def test_get_persistor_result(self, mock_config):
         # arrange
         factory = PersistorFactory(mock_config)
-        type_index = ['flat_file_storage','ibm_object_storage']
+        type_index = ['flat_file','ibm_object_storage']
         # action/assert
         for t in type_index:
             persistor = factory.get_persistor(t)
