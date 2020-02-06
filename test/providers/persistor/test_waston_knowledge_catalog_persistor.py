@@ -186,7 +186,7 @@ class TestWastonKnowledgeCatalogPersistor():
             wkc_client.return_value.delete_asset.assert_called_once()
 
     def test_decode_endcode_method(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient'):
             # arrange
             config = mock_config
             persistor = WastonKnowlegeCatalogPersistor(config)
