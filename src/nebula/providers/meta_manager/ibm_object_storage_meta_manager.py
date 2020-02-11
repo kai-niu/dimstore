@@ -9,6 +9,7 @@ import base64
 import json
 import ibm_boto3
 import warnings
+from ibm_botocore.errorfactory import ClientError
 from botocore.client import Config
 from nebula.providers.meta_manager.meta_manager_base import MetaManagerBase
 from nebula.core.feature_set import FeatureSet
@@ -332,8 +333,16 @@ class IBMObjectStorageMetaManager(MetaManagerBase):
         try:
             body = self.client.get_object(Bucket=self.BUCKET,Key=filename)['Body']
             content = body.read()
+        except ClientError as ce:
+            if ce.response['Error']['Code'] == 'NoSuchKey':
+                dumps = pl.dumps({})
+                self.__write_dumps__(dumps)
+                print('> ibm boto meta_manager file does not exist, create new one for you :)')
+            else:
+                print('> ibm boto client error: ', ce)
         except Exception as e:
-            print('> ibm boto read operation failed! \n',e)
+                print('> ibm boto read operation failed! \n',e)
+
         return content
 
 
