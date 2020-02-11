@@ -30,7 +30,7 @@ class CleanCommand(Command):
 
 setup(
     name='DimStore',
-    version='0.0.12',
+    version='0.0.13',
     license='BSD 2-Clause License',
     author='Kai Niu',
     author_email='kai.niu@ibm.com',
