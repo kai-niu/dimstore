@@ -4,6 +4,7 @@
 
 from nebula.providers.meta_manager.flatfile_meta_manager import FlatFileMetaManager
 from nebula.providers.meta_manager.ibm_wkc_meta_manager import WastonKnowledgeCatalogMetaManager
+from nebula.providers.meta_manager.ibm_object_storage_meta_manager import IBMObjectStorageMetaManager
 
 class MetaManagerFactory():
 
@@ -16,6 +17,8 @@ class MetaManagerFactory():
             return FlatFileMetaManager(self.config['meta_manager_providers']['flat_file'])
         elif self.config['meta_manager'] == 'ibm_waston_knowledge_catalog':
             return WastonKnowledgeCatalogMetaManager(self.config['meta_manager_providers']['ibm_waston_knowledge_catalog'])
+        elif self.config['meta_manager'] == 'ibm_object_storage':
+            return IBMObjectStorageMetaManager(self.config['meta_manager_providers']['ibm_object_storage'])
         else:
             raise Exception('> meta manager provider: %s is not supported' % (self.config['meta_manager']))
 
