@@ -3,8 +3,8 @@
 """
 import pytest
 from unittest import mock
-from nebula.providers.persistor.ibm_object_storage_persistor import IBMObjectStoragePersistor
-from nebula.core.feature_metadata import FeatureMetaData
+from dimstore.providers.persistor.ibm_object_storage_persistor import IBMObjectStoragePersistor
+from dimstore.core.feature_metadata import FeatureMetaData
 
 
 @pytest.fixture(scope='function')
@@ -38,7 +38,7 @@ def mock_config(request):
 
 class TestIBMObjectStoragePersistor():
     def test_init_parse_config(self, mock_config):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
             # arrange
             config = mock_config
             mock.patch.object(mocked_boto,'client', return_value=None)  
@@ -53,7 +53,7 @@ class TestIBMObjectStoragePersistor():
             assert obj.BUCKET == 'foobar_bucket'
 
     def test_init_call_boto_client_once(self, mock_config):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
             # arrange
             config = mock_config
             # act
@@ -62,7 +62,7 @@ class TestIBMObjectStoragePersistor():
             mocked_boto.client.assert_called_once()
 
     def test_init_call_boto_client_success(self, mock_config):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
             # arrange
             config = mock_config
             mocked_boto.client.return_value='client'   
@@ -72,7 +72,7 @@ class TestIBMObjectStoragePersistor():
             assert mock_persistor.client == 'client'
 
     def test_init_call_boto_client_exception(self, mock_config, capsys):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
             # arrange
             config = mock_config
             mocked_boto.client.side_effect = Exception('Test Exception')
@@ -83,7 +83,7 @@ class TestIBMObjectStoragePersistor():
             assert captured.out[:5] == '> ibm'
 
     def test_write_method_call_put_object_once(self, mock_config, mock_feature_meta):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
             # arrange
             config = mock_config
             mock_persistor = IBMObjectStoragePersistor(config)
@@ -94,7 +94,7 @@ class TestIBMObjectStoragePersistor():
             mock_persistor.client.put_object.assert_called_once()
     
     def test_write_method_call_put_object_exception(self, mock_config, mock_feature_meta, capsys):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3'):
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3'):
             # arrange
             config = mock_config
             mock_persistor = IBMObjectStoragePersistor(config)
@@ -108,7 +108,7 @@ class TestIBMObjectStoragePersistor():
             assert captured.out[:5] == '> ibm'
 
     def test_read_method_call_get_object_once(self, mock_config, mock_feature_meta):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
             # arrange
             config = mock_config
             mock_persistor = IBMObjectStoragePersistor(config)
@@ -119,7 +119,7 @@ class TestIBMObjectStoragePersistor():
             mock_persistor.client.get_object.assert_called_once()
 
     def test_read_method_call_get_object_return(self, mock_config, mock_feature_meta):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3'):
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3'):
             # arrange
             config = mock_config
             mock_persistor = IBMObjectStoragePersistor(config)
@@ -132,7 +132,7 @@ class TestIBMObjectStoragePersistor():
             assert body == b'test body!'
     
     def test_read_method_call_get_object_exception(self, mock_config, mock_feature_meta, capsys):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3'):
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3'):
             # arrange
             config = mock_config
             mock_persistor = IBMObjectStoragePersistor(config)
@@ -146,7 +146,7 @@ class TestIBMObjectStoragePersistor():
             assert body == None
     
     def test_delete_method_call_delete_object_once(self, mock_config, mock_feature_meta):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3') as mocked_boto:
             # arrange
             config = mock_config
             mock_persistor = IBMObjectStoragePersistor(config)
@@ -157,7 +157,7 @@ class TestIBMObjectStoragePersistor():
             mock_persistor.client.delete_object.assert_called_once()
 
     def test_delete_method_call_delete_object_exception(self, mock_config, mock_feature_meta, capsys):
-        with mock.patch('nebula.providers.persistor.ibm_object_storage_persistor.ibm_boto3'):
+        with mock.patch('dimstore.providers.persistor.ibm_object_storage_persistor.ibm_boto3'):
             # arrange
             config = mock_config
             mock_persistor = IBMObjectStoragePersistor(config)

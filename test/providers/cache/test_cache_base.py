@@ -3,7 +3,7 @@
 """
 
 import pytest
-from nebula.providers.cache.cache_base import CacheLayerBase
+from dimstore.providers.cache.cache_base import CacheLayerBase
 
 
 @pytest.fixture(scope='function')

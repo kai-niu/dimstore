@@ -3,7 +3,7 @@
     test flat file meta manager
 """
 import pytest
-from nebula.providers.meta_manager.flatfile_meta_manager import FlatFileMetaManager
+from dimstore.providers.meta_manager.flatfile_meta_manager import FlatFileMetaManager
 
 @pytest.fixture(scope='function')
 def base_class(request):
