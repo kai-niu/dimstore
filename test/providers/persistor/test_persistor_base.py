@@ -3,7 +3,7 @@
 """
 
 import pytest
-from nebula.providers.persistor.persistor_base import PersistorBase
+from dimstore.providers.persistor.persistor_base import PersistorBase
 
 
 @pytest.fixture(scope='function')

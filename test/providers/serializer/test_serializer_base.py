@@ -3,7 +3,7 @@
 """
 
 import pytest
-from nebula.providers.serializer.serializer_base import SerializerBase
+from dimstore.providers.serializer.serializer_base import SerializerBase
 
 
 @pytest.fixture(scope='function')

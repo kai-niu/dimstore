@@ -3,8 +3,8 @@
 """
 import pytest
 from unittest import mock
-from nebula.providers.persistor.flatfile_persistor import FlatFilePersistor
-from nebula.core.feature_metadata import FeatureMetaData
+from dimstore.providers.persistor.flatfile_persistor import FlatFilePersistor
+from dimstore.core.feature_metadata import FeatureMetaData
 
 
 @pytest.fixture(scope='function')
@@ -45,7 +45,7 @@ class TestFlatFilePersistor():
         assert obj.path == '/foobar/catalog'
 
     def test_write_method_call_put_write_binary_method_once(self, mock_config, mock_feature_meta):
-        with mock.patch('nebula.providers.persistor.flatfile_persistor.write_binary_file') as mocked_write_fn:
+        with mock.patch('dimstore.providers.persistor.flatfile_persistor.write_binary_file') as mocked_write_fn:
             # arrange
             config = mock_config
             mocked_write_fn.return_value = None
