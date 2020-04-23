@@ -3,7 +3,7 @@
 """
 import pytest
 from unittest import mock
-from nebula.utility.file_functions import *
+from dimstore.utility.file_functions import *
 
 
 @pytest.fixture(scope='function')
@@ -56,7 +56,7 @@ class TestUtilityFileFunctions():
             assert expected_result[1] == filename
 
     def test_http_read_file_success(self):
-        with mock.patch('nebula.utility.file_functions.urllib.request') as mock_request:
+        with mock.patch('dimstore.utility.file_functions.urllib.request') as mock_request:
             # arrange
             mock_response = mock.Mock()
             mock_response.read.return_value = 'test content'
@@ -67,7 +67,7 @@ class TestUtilityFileFunctions():
             assert content == 'test content'
     
     def test_http_read_file_success_after_k_attempts(self):
-        with mock.patch('nebula.utility.file_functions.urllib.request') as mock_request:
+        with mock.patch('dimstore.utility.file_functions.urllib.request') as mock_request:
             # arrange
             mock_response = mock.Mock()
             mock_response.read.return_value = 'test content'
@@ -79,7 +79,7 @@ class TestUtilityFileFunctions():
             assert mock_response.read.call_count == 3 and content == 'test content'
 
     def test_http_read_file_failed_and_retry(self):
-        with mock.patch('nebula.utility.file_functions.urllib.request') as mock_request:
+        with mock.patch('dimstore.utility.file_functions.urllib.request') as mock_request:
             # arrange
             mock_request.urlopen.side_effect = Exception('Test Exception')
             # act
@@ -119,7 +119,7 @@ class TestUtilityFileFunctions():
             assert exist == True
 
     def test_try_read_file_success(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('builtins.open', mock.mock_open(read_data="foo")) as _:
                 # arrange
                 mock_file_exist.return_value = True
@@ -129,7 +129,7 @@ class TestUtilityFileFunctions():
                 assert data == 'foo'
     
     def test_try_read_file_success_after_k_attemps(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('builtins.open', mock.mock_open(read_data="data")) as mock_open:
                 # arrange
                 mock_file_exist.return_value = True
@@ -142,7 +142,7 @@ class TestUtilityFileFunctions():
                 assert mock_open.call_count == 3 and data == "data"
 
     def test_try_read_file_failed_max_try(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('builtins.open', mock.mock_open(read_data="foo")) as mock_open:
                 # arrange
                 mock_file_exist.return_value = True
@@ -155,7 +155,7 @@ class TestUtilityFileFunctions():
                 assert mock_open.call_count == max_attempts and data == None
     
     def test_try_read_file_failed_not_exist(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('builtins.open', mock.mock_open(read_data="foo")) as mock_open:
                 # arrange
                 mock_file_exist.return_value = False
@@ -165,7 +165,7 @@ class TestUtilityFileFunctions():
                 assert mock_open.call_count == 0 and data == None
 
     def test_try_write_file_success(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('builtins.open', mock.mock_open(read_data="foo")) as _:
                 # arrange
                 mock_file_exist.return_value = True
@@ -175,7 +175,7 @@ class TestUtilityFileFunctions():
                 assert status == 0
     
     def test_try_write_file_success_after_k_attemps(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('builtins.open', mock.mock_open(read_data="foo")) as mock_open:
                 # arrange
                 mock_file_exist.return_value = True
@@ -188,7 +188,7 @@ class TestUtilityFileFunctions():
                 assert mock_open.call_count == 3 and status == 0
 
     def test_try_write_file_failed_max_try(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('builtins.open', mock.mock_open(read_data="foo")) as mock_open:
                 # arrange
                 mock_file_exist.return_value = True
@@ -201,7 +201,7 @@ class TestUtilityFileFunctions():
                 assert mock_open.call_count == max_attempts and status == 1
 
     def test_try_write_file_not_exist_not_auto_create(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('builtins.open', mock.mock_open(read_data="foo")) as mock_open:
                 # arrange
                 mock_file_exist.return_value = False
@@ -211,7 +211,7 @@ class TestUtilityFileFunctions():
                 assert mock_open.call_count == 0 and status == 1
 
     def test_try_write_file_not_exist_with_auto_create(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('builtins.open', mock.mock_open(read_data="foo")) as mock_open:
                 # arrange
                 mock_file_exist.return_value = False
@@ -221,7 +221,7 @@ class TestUtilityFileFunctions():
                 assert mock_open.call_count == 1 and status == 0
 
     def test_try_delete_file_success(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('os.remove') as _:
                 # arrange
                 mock_file_exist.return_value = True
@@ -231,7 +231,7 @@ class TestUtilityFileFunctions():
                 assert status == 0
 
     def test_try_delete_file_success_after_k_attemps(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('os.remove') as mock_remove:
                 # arrange
                 mock_file_exist.return_value = True
@@ -244,7 +244,7 @@ class TestUtilityFileFunctions():
                 assert mock_remove.call_count == 3 and status == 0
 
     def test_try_delete_file_failed_max_try(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('os.remove') as mock_remove:
                 # arrange
                 mock_file_exist.return_value = True
@@ -257,7 +257,7 @@ class TestUtilityFileFunctions():
                 assert mock_remove.call_count == 10 and status == 1
 
     def test_try_delete_file_failed_not_exist(self):
-        with mock.patch('nebula.utility.file_functions.file_exist') as mock_file_exist:
+        with mock.patch('dimstore.utility.file_functions.file_exist') as mock_file_exist:
             with mock.patch('os.remove') as mock_remove:
                 # arrange
                 mock_file_exist.return_value = False
@@ -267,7 +267,7 @@ class TestUtilityFileFunctions():
                 assert mock_remove.call_count == 0 and status == 1
     
     def test_read_text_file_success(self):
-        with mock.patch('nebula.utility.file_functions.try_read_file') as mock_read:
+        with mock.patch('dimstore.utility.file_functions.try_read_file') as mock_read:
             # arrange
             mock_read.return_value = "foo"
             # act
@@ -276,7 +276,7 @@ class TestUtilityFileFunctions():
             assert data == "foo"
 
     def test_read_text_file_failed(self, capsys):
-        with mock.patch('nebula.utility.file_functions.try_read_file') as mock_read:
+        with mock.patch('dimstore.utility.file_functions.try_read_file') as mock_read:
             # arrange
             mock_read.return_value = None
             # act/assert
@@ -284,7 +284,7 @@ class TestUtilityFileFunctions():
                 read_text_file('foo','bar')
     
     def test_binary_file_success(self):
-        with mock.patch('nebula.utility.file_functions.try_read_file') as mock_read:
+        with mock.patch('dimstore.utility.file_functions.try_read_file') as mock_read:
             # arrange
             mock_read.return_value = "foo"
             # act
@@ -293,7 +293,7 @@ class TestUtilityFileFunctions():
             assert data == "foo"
 
     def test_read_binary_file_failed(self):
-        with mock.patch('nebula.utility.file_functions.try_read_file') as mock_read:
+        with mock.patch('dimstore.utility.file_functions.try_read_file') as mock_read:
             # arrange
             mock_read.return_value = None
             # act/assert
@@ -301,7 +301,7 @@ class TestUtilityFileFunctions():
                 read_binary_file('foo','bar')
 
     def test_write_text_file_failed(self, capsys):
-        with mock.patch('nebula.utility.file_functions.try_write_file') as mock_write:
+        with mock.patch('dimstore.utility.file_functions.try_write_file') as mock_write:
             # arrange
             mock_write.return_value = 1
             # act/assert
@@ -309,7 +309,7 @@ class TestUtilityFileFunctions():
                 write_text_file('foo','bar','data')
     
     def test_write_binary_file_failed(self, capsys):
-        with mock.patch('nebula.utility.file_functions.try_write_file') as mock_write:
+        with mock.patch('dimstore.utility.file_functions.try_write_file') as mock_write:
             # arrange
             mock_write.return_value = 1
             # act/assert
@@ -317,7 +317,7 @@ class TestUtilityFileFunctions():
                 write_binary_file('foo','bar','data')
 
     def test_delete_file_failed(self, capsys):
-        with mock.patch('nebula.utility.file_functions.try_delete_file') as mock_delete:
+        with mock.patch('dimstore.utility.file_functions.try_delete_file') as mock_delete:
             # arrange
             mock_delete.return_value = 1
             # act/assert

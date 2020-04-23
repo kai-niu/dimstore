@@ -2,7 +2,7 @@
     test meta data manager base class
 """
 import pytest
-from nebula.providers.meta_manager.meta_manager_base import MetaManagerBase
+from dimstore.providers.meta_manager.meta_manager_base import MetaManagerBase
 
 @pytest.fixture(scope='function')
 def base_class(request):

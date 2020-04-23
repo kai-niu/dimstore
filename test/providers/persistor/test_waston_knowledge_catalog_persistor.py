@@ -4,8 +4,8 @@
 import pytest
 import json
 from unittest import mock
-from nebula.providers.persistor.waston_knowledge_catalog_persistor import WastonKnowlegeCatalogPersistor
-from nebula.core.feature_metadata import FeatureMetaData
+from dimstore.providers.persistor.waston_knowledge_catalog_persistor import WastonKnowlegeCatalogPersistor
+from dimstore.core.feature_metadata import FeatureMetaData
 
 
 @pytest.fixture(scope='function')
@@ -29,7 +29,7 @@ def mock_config(request):
 class TestWastonKnowledgeCatalogPersistor():
 
     def test_init_parse_config(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             wkc_client.return_value = mock.MagicMock(return_value='foo client')
@@ -43,7 +43,7 @@ class TestWastonKnowledgeCatalogPersistor():
             assert obj.client() == 'foo client'
 
     def test_is_feature_asset_exist_in_wkc_true(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             wkc_client.return_value.get_asset_types.return_value=['feature_asset']
@@ -54,7 +54,7 @@ class TestWastonKnowledgeCatalogPersistor():
             assert mock_persistor.__is_feature_asset_exist__() == True
     
     def test_is_feature_asset_exist_in_wkc_false(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             wkc_client.return_value.get_asset_types.return_value=['foo_asset']
@@ -65,7 +65,7 @@ class TestWastonKnowledgeCatalogPersistor():
             assert mock_persistor.__is_feature_asset_exist__() == False
 
     def test_call_wkc_client_create_asset_type_method_once(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             wkc_client.return_value.get_asset_types.return_value=['foo_asset']
@@ -76,7 +76,7 @@ class TestWastonKnowledgeCatalogPersistor():
             wkc_client.return_value.get_asset_types.assert_called_once()
 
     def test_call_wkc_client_create_asset_type_method_zero(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             wkc_client.return_value.get_asset_types.return_value=['feature_asset']
@@ -87,7 +87,7 @@ class TestWastonKnowledgeCatalogPersistor():
             wkc_client.return_value.get_asset_types.assert_called_once()
 
     def test_init_wkc_client_exception(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             mock_exception = Exception('test exception!')
@@ -97,7 +97,7 @@ class TestWastonKnowledgeCatalogPersistor():
                 assert WastonKnowlegeCatalogPersistor(config)
 
     def test_write_method_update_feature_uid(self, mock_config, mock_feature_meta):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             feature = mock_feature_meta
@@ -114,7 +114,7 @@ class TestWastonKnowledgeCatalogPersistor():
             wkc_client.return_value.create_asset.assert_called_once()
 
     def test_write_method_exception(self, mock_config, mock_feature_meta):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             feature = mock_feature_meta
@@ -129,8 +129,8 @@ class TestWastonKnowledgeCatalogPersistor():
             wkc_client.return_value.create_asset.assert_called_once()
 
     def test_read_method_return_content(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
-            with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.base64') as mock_base64:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+            with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.base64') as mock_base64:
                 # arrange
                 config = mock_config
                 uid = 'foo_id'
@@ -145,8 +145,8 @@ class TestWastonKnowledgeCatalogPersistor():
                 mock_base64.decodebytes.assert_called_once()
 
     def test_read_method_exception(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
-            with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.base64') as mock_base64:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+            with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.base64') as mock_base64:
                 # arrange
                 config = mock_config
                 uid = 'foo_id'
@@ -161,7 +161,7 @@ class TestWastonKnowledgeCatalogPersistor():
                 mock_base64.decodebytes.assert_not_called()
 
     def test_delete_method_success(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             uid = 'foo_id'
@@ -173,7 +173,7 @@ class TestWastonKnowledgeCatalogPersistor():
             wkc_client.return_value.delete_asset.assert_called_once()
 
     def test_delete_method_exception(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient') as wkc_client:
             # arrange
             config = mock_config
             uid = 'foo_id'
@@ -186,7 +186,7 @@ class TestWastonKnowledgeCatalogPersistor():
             wkc_client.return_value.delete_asset.assert_called_once()
 
     def test_decode_endcode_method(self, mock_config):
-        with mock.patch('nebula.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient'):
+        with mock.patch('dimstore.providers.persistor.waston_knowledge_catalog_persistor.WastonKnowledgeCatalogClient'):
             # arrange
             config = mock_config
             persistor = WastonKnowlegeCatalogPersistor(config)
