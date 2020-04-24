@@ -1,5 +1,5 @@
 # Nebula
-Nebula is a lightweight __feature store__ designed to streamline the DSE working pipeline by sharing high-quality features among team members and enable feature reuse with minimal effort. It designs to be extensible and versatile to accommodate different teams set up on different computation platform.
+Nebula is a lightweight __feature store__ designed to streamline the DS working pipeline by sharing high-quality features among team members and enable feature reuse with minimal effort. It designs to be extensible and versatile to accommodate different teams set up on different computation platform.
 
 [![Build Status](https://travis.ibm.com/Kai-Niu/dimstore.svg?token=uqbL1pAUo2sCHeqp1yJV&branch=master)](https://travis.ibm.com/Kai-Niu/nebula)
 
