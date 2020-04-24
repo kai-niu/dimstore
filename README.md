@@ -3,6 +3,8 @@ DimStore is a lightweight __feature store__ designed to streamline the DS workin
 
 [![Build Status](https://travis.ibm.com/Kai-Niu/dimstore.svg?token=uqbL1pAUo2sCHeqp1yJV&branch=master)](https://travis.ibm.com/Kai-Niu/nebula)
 
+[![Actions Status](https://github.com/kai-niu/dimstore/workflows/unit-test/badge.svg)](https://github.com/kai-niu/dimstore/actions)
+
 # Design
 
 <img style="float: center;" src="docs/diagrams/nebula_design_diagram.jpg">  
