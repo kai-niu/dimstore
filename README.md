@@ -2,6 +2,7 @@
 DimStore is a lightweight __feature store__ designed to streamline the DS working pipeline by sharing high-quality features among team members and enable feature reuse with minimal effort. It designs to be extensible and versatile to accommodate different teams set up on different computation platform.
 
 [![Actions Status](https://github.com/kai-niu/dimstore/workflows/unit-test/badge.svg)](https://github.com/kai-niu/dimstore/actions)
+[![Actions Status](https://github.com/kai-niu/dimstore/workflows/code-style/badge.svg)](https://github.com/kai-niu/dimstore/actions)
 
 # Design
 
